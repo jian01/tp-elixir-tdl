@@ -1,18 +1,16 @@
 defmodule ChatServer do
+  import ChatServerListener
   @moduledoc """
-  Documentation for `ChatServer`.
+  Chat server main module and launcher
   """
 
   @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> ChatServer.hello()
-      :world
-
+  Chat server start function
   """
-  def hello do
-    :world
+  def start(_type, _args) do
+    pid = spawn fn -> start_listening() end
+
+    {:ok, pid}
   end
+
 end
