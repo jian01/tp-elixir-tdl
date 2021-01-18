@@ -4,17 +4,17 @@ defmodule MessageDispatcher do
   Module responsible for dispatching messages to clients
   """
 
-  defp main_loop(connections_map) do
+  defp main_loop(client_handlers_map) do
     receive do
       {:add_client, client_id,handler_pid} ->
         Logger.debug("Adding client #{client_id} to map")
-        connections_map = Map.put(connections_map, client_id, handler_pid)
-        main_loop(connections_map)
-      {:send_message, client_id, message} ->
-        Logger.debug("Sending message from main_loop to #{client_id}")
-        handler_pid = Map.get(connections_map, client_id)
-        send handler_pid, {:send_message, message}
-        main_loop(connections_map)
+        client_handlers_map = Map.put(client_handlers_map, client_id, handler_pid)
+        main_loop(client_handlers_map)
+      {:send_message, sender_id, recipient_id, content, timestamp} ->
+        Logger.debug("Sending message in MessageDispatcher from #{sender_id} to #{recipient_id}")
+        handler_pid = Map.get(client_handlers_map, recipient_id)
+        send handler_pid, {:new_message, sender_id, recipient_id, content, timestamp}
+        main_loop(client_handlers_map)
     end
   end
 
