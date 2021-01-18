@@ -1,10 +1,12 @@
 defmodule MessageSerializer do
   def serialize_message(sender_id, recipient_id, content, timestamp) do
-    JSON.encode(%{"sender" => sender_id,
-                "recipient" => recipient_id,
-                "content" => content,
-                "created_datetime" => timestamp,
-                "type" => "text"})
+    {:ok, serialized} = JSON.encode(%{"sender" => sender_id,
+    "recipient" => recipient_id,
+    "content" => content,
+    "created_datetime" => timestamp,
+    "type" => "text"})
+    
+    serialized
   end
 
   def deserialize_message(data) do
