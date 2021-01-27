@@ -7,7 +7,7 @@ before_install:
   - sudo apt-get install esl-erlang
   - sudo apt-get install elixir
   - cd chatserver
-  - elixir --detached -S mix run --no-halt
+  - elixir --erl "-detached" -S mix run --no-halt
   - cd ..
   - python --version
   - pip install -r python_client/requirements.txt
