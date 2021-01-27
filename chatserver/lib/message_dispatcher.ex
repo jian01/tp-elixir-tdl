@@ -10,10 +10,10 @@ defmodule MessageDispatcher do
         Logger.debug("Adding client #{client_id} to map")
         client_handlers_map = Map.put(client_handlers_map, client_id, handler_pid)
         main_loop(client_handlers_map)
-      {:send_new, type, content_tuple, recipient} ->
-        Logger.debug("Sending new to client #{recipient} of type #{type}")
-        handler_pid = Map.get(client_handlers_map, recipient)
-        send handler_pid, {:send_new, type, content_tuple, recipient}
+      {:send_notification, notification} ->
+        Logger.debug("Sending new to client #{notification.recipient} of type #{notification.type}")
+        handler_pid = Map.get(client_handlers_map, notification.recipient)
+        send handler_pid, {:send_notification, notification}
         main_loop(client_handlers_map)
     end
   end

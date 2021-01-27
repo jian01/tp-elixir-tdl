@@ -1,19 +1,18 @@
 defmodule ClientHandler do
-  import NewSerializer
+  import NotificationSerializer
   @moduledoc """
   Responsible for handling client state
   """
 
   defp send_all_news(news, requester_pid) do
-    send requester_pid, {:news, Enum.map(news, fn {type, content, recipient} ->
-      serialize_new(type, content, recipient) end)}
+    send requester_pid, {:notifications, Enum.map(news, fn notification -> serialize_notification(notification) end)}
   end
 
   defp main_loop(news) do
     receive do
-      {:send_new, type, content_tuple, recipient} ->
-        main_loop([{type, content_tuple, recipient} | news])
-      {:get_news, requester_pid} ->
+      {:send_notification, notification} ->
+        main_loop([notification | news])
+      {:get_notifications, requester_pid} ->
         send_all_news(news, requester_pid)
         main_loop([])
     end
