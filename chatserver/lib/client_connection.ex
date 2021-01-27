@@ -1,11 +1,13 @@
 defmodule ClientConnection do
   import MessageSerializer
+  import NewSerializer
   require Logger
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client
   """
   @size_message_length 20
   @get_news_keyword "GET_NEWS"
+  @send_new_keyword "SEND_NEWS"
 
   defp size_to_bytes_number(number) do
     String.pad_leading(Integer.to_string(number), @size_message_length, "0")
@@ -57,9 +59,15 @@ defmodule ClientConnection do
             {:ok, encoded_news} = JSON.encode(news)
             send_plain_text(socket, encoded_news)
         end
+      {:ok, @send_new_keyword} ->
+        case read_plain_text_w_timeout(socket, 0) do
+          {:ok, data} ->
+            {type, content_tuple, recipient} = deserialize_new(data)
+            send m_dispatcher_pid, {:send_new, type, content_tuple, recipient}
+        end
       {:ok, data} ->
-        {sender_id, recipient_id, text_message, timestamp, _} = deserialize_message(data)
-        send m_dispatcher_pid, {:send_message, sender_id, recipient_id, text_message, timestamp}
+        {id, sender_id, recipient_id, text_message, timestamp, _} = deserialize_message(data)
+        send m_dispatcher_pid, {:send_message, id, sender_id, recipient_id, text_message, timestamp}
         :ok
       :timeout ->
         :ok

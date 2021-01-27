@@ -14,7 +14,7 @@ defmodule ChatServerListener do
       {:ok, data} ->
         {client_id, _} = Integer.parse(data)
         Logger.debug("Accepting new client with id #{client_id}")
-        client_handler_pid = spawn fn -> client_handler_run() end
+        client_handler_pid = spawn_link fn -> client_handler_run() end
         send m_dispatcher_pid, {:add_client, client_id, client_handler_pid}
         _ = spawn fn -> client_connection_run(client, client_handler_pid, m_dispatcher_pid) end
         accept_connection(socket, m_dispatcher_pid)

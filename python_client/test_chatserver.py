@@ -2,6 +2,8 @@ import unittest
 from multiprocessing import Process, Barrier
 from chat_server_connector import ChatServerConnector
 from messages.text_message import TextMessage
+from server_news.new_message import NewMessage
+from server_news.receipt_notice import ReceiptNotice
 from time import sleep
 
 class TestDiskMessagePipeline(unittest.TestCase):
@@ -14,6 +16,7 @@ class TestDiskMessagePipeline(unittest.TestCase):
             barrera.wait()
             sleep(1)
             news = connector.get_news()
+            news = [new for new in news if isinstance(new, NewMessage)]
             try:
                 assert len(news) == 1
                 assert news[0].message.sender == 1
@@ -29,6 +32,7 @@ class TestDiskMessagePipeline(unittest.TestCase):
             barrera.wait()
             sleep(1)
             news = connector.get_news()
+            news = [new for new in news if isinstance(new, NewMessage)]
             try:
                 assert len(news) == 1
                 assert news[0].message.sender == 1
@@ -46,6 +50,37 @@ class TestDiskMessagePipeline(unittest.TestCase):
         p_pepito.join()
         self.assertEqual(p_pepito.exitcode, 0)
         self.assertEqual(p_jorgito.exitcode, 0)
+
+    def test_simple_receipt_message(self):
+        def escritor(barrera):
+            connector = ChatServerConnector('localhost', 6500, 2)
+            barrera.wait()
+            message = TextMessage(2, 1, "Hola don pepito")
+            connector.send_message(message)
+            barrera.wait()
+            sleep(1)
+            barrera.wait()
+            sleep(1)
+            news = connector.get_news()
+            try:
+                assert len(news) == 1
+                assert news[0].message_id == message.message_id
+            except AssertionError:
+                return 1
+
+        def receptor(barrera):
+            connector = ChatServerConnector('localhost', 6500, 1)
+            barrera.wait()
+            barrera.wait()
+            sleep(1)
+            news = connector.get_news()
+            try:
+                assert len(news) == 1
+                assert news[0].message.sender == 2
+            except AssertionError:
+                return 1
+            barrera.wait()
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -67,7 +67,8 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1610988850103</updated>
-      <workItem from="1610988851310" duration="12088000" />
+      <workItem from="1610988851310" duration="14552000" />
+      <workItem from="1611700828792" duration="6308000" />
     </task>
     <servers />
   </component>
@@ -79,6 +80,22 @@
       <screen x="0" y="0" width="1600" height="860" />
     </state>
     <state x="254" y="85" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1600.860/1600.178.1280.680@0.0.1600.860" timestamp="1611006813867" />
+    <state width="1557" height="222" key="GridCell.Tab.0.bottom" timestamp="1611007771874">
+      <screen x="0" y="0" width="1600" height="860" />
+    </state>
+    <state width="1557" height="222" key="GridCell.Tab.0.bottom/0.0.1600.860/1600.178.1280.680@0.0.1600.860" timestamp="1611007771874" />
+    <state width="1557" height="222" key="GridCell.Tab.0.center" timestamp="1611007771874">
+      <screen x="0" y="0" width="1600" height="860" />
+    </state>
+    <state width="1557" height="222" key="GridCell.Tab.0.center/0.0.1600.860/1600.178.1280.680@0.0.1600.860" timestamp="1611007771874" />
+    <state width="1557" height="222" key="GridCell.Tab.0.left" timestamp="1611007771874">
+      <screen x="0" y="0" width="1600" height="860" />
+    </state>
+    <state width="1557" height="222" key="GridCell.Tab.0.left/0.0.1600.860/1600.178.1280.680@0.0.1600.860" timestamp="1611007771874" />
+    <state width="1557" height="222" key="GridCell.Tab.0.right" timestamp="1611007771874">
+      <screen x="0" y="0" width="1600" height="860" />
+    </state>
+    <state width="1557" height="222" key="GridCell.Tab.0.right/0.0.1600.860/1600.178.1280.680@0.0.1600.860" timestamp="1611007771874" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/python_client$Unittests_in_test_chatserver_py.coverage" NAME="Unittests in test_chatserver.py Coverage Results" MODIFIED="1611006671109" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
