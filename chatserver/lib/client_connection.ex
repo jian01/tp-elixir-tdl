@@ -1,5 +1,5 @@
 defmodule ClientConnection do
-  import NewSerializer
+  import NotificationSerializer
   require Logger
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client
@@ -51,15 +51,15 @@ defmodule ClientConnection do
   def client_connection_run(socket, client_handler_pid, m_dispatcher_pid) do
     case read_plain_text_w_timeout(socket, 1) do
       {:ok, @get_news_keyword} ->
-        send client_handler_pid, {:get_news, self()}
+        send client_handler_pid, {:get_notifications, self()}
         receive do
-          {:news, news} ->
-            {:ok, encoded_news} = JSON.encode(news)
-            send_plain_text(socket, encoded_news)
+          {:notifications, notifications} ->
+            {:ok, encoded_notifications} = JSON.encode(notifications)
+            send_plain_text(socket, encoded_notifications)
         end
       {:ok, data} ->
-        {type, content_tuple, recipient} = deserialize_new(data)
-        send m_dispatcher_pid, {:send_new, type, content_tuple, recipient}
+        notification = deserialize_notification(data)
+        send m_dispatcher_pid, {:send_notification, notification}
       :timeout ->
         :ok
       :error ->
