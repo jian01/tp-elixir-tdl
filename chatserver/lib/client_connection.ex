@@ -1,5 +1,5 @@
 defmodule ClientConnection do
-  import MessageSerializer
+  import NewSerializer
   require Logger
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client
@@ -58,9 +58,8 @@ defmodule ClientConnection do
             send_plain_text(socket, encoded_news)
         end
       {:ok, data} ->
-        {sender_id, recipient_id, text_message, timestamp, _} = deserialize_message(data)
-        send m_dispatcher_pid, {:send_message, sender_id, recipient_id, text_message, timestamp}
-        :ok
+        {type, content_tuple, recipient} = deserialize_new(data)
+        send m_dispatcher_pid, {:send_new, type, content_tuple, recipient}
       :timeout ->
         :ok
       :error ->
