@@ -8,7 +8,6 @@ import json
 import socket
 
 GET_NEWS_KEYWORD = "GET_NEWS"
-SEND_NEWS_KEYWORD = "SEND_NEWS"
 
 class ChatServerConnector:
     """
@@ -34,7 +33,8 @@ class ChatServerConnector:
 
         :param message: the message to send
         """
-        self.blocking_socket_transferer.send_plain_text(message.serialize())
+        new_message = NewMessage(message.serialize(),message.recipient)
+        self.send_notification(new_message)
 
     def get_news(self) -> List[Notification]:
         """
@@ -59,7 +59,12 @@ class ChatServerConnector:
 
         :param notif: the notification to send to the server
         """
-        self.blocking_socket_transferer.send_plain_text(SEND_NEWS_KEYWORD)
         data = notif.serialize()
         self.blocking_socket_transferer.send_plain_text(data)
+
+    def __del__(self) -> NoReturn:
+        """
+        Closes the socket
+        """
+        self.blocking_socket_transferer.close()
 

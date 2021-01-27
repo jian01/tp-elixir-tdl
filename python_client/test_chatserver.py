@@ -3,7 +3,7 @@ from multiprocessing import Process, Barrier
 from chat_server_connector import ChatServerConnector
 from messages.text_message import TextMessage
 from server_news.new_message import NewMessage
-from server_news.receipt_notice import ReceiptNotice
+from messages.message import Message
 from time import sleep
 
 class TestDiskMessagePipeline(unittest.TestCase):
@@ -17,13 +17,14 @@ class TestDiskMessagePipeline(unittest.TestCase):
             sleep(1)
             news = connector.get_news()
             news = [new for new in news if isinstance(new, NewMessage)]
+            del connector
             try:
                 assert len(news) == 1
                 assert news[0].message.sender == 1
                 assert news[0].message.content == "Hola jorgito"
-                return 0
-            except AssertionError:
-                return 1
+                exit(0)
+            except AssertionError as e:
+                raise e
 
         def pepito(barrera):
             connector = ChatServerConnector('localhost', 6500, 1)
@@ -33,13 +34,14 @@ class TestDiskMessagePipeline(unittest.TestCase):
             sleep(1)
             news = connector.get_news()
             news = [new for new in news if isinstance(new, NewMessage)]
+            del connector
             try:
                 assert len(news) == 1
-                assert news[0].message.sender == 1
+                assert news[0].message.sender == 2
                 assert news[0].message.content == "Hola don pepito"
-                return 0
-            except AssertionError:
-                return 1
+                exit(0)
+            except AssertionError as e:
+                raise e
 
         barrera = Barrier(2)
         p_jorgito = Process(target=jorgito, args=(barrera,))
@@ -62,11 +64,13 @@ class TestDiskMessagePipeline(unittest.TestCase):
             barrera.wait()
             sleep(1)
             news = connector.get_news()
+            del connector
             try:
                 assert len(news) == 1
                 assert news[0].message_id == message.message_id
-            except AssertionError:
-                return 1
+                exit(0)
+            except AssertionError as e:
+                raise e
 
         def receptor(barrera):
             connector = ChatServerConnector('localhost', 6500, 1)
@@ -74,12 +78,30 @@ class TestDiskMessagePipeline(unittest.TestCase):
             barrera.wait()
             sleep(1)
             news = connector.get_news()
+            del connector
             try:
                 assert len(news) == 1
                 assert news[0].message.sender == 2
-            except AssertionError:
-                return 1
+            except AssertionError as e:
+                raise e
             barrera.wait()
+            exit(0)
+
+        barrera = Barrier(2)
+        p1 = Process(target=escritor, args=(barrera,))
+        p2 = Process(target=receptor, args=(barrera,))
+        p1.start()
+        p2.start()
+        p1.join()
+        p2.join()
+        self.assertEqual(p1.exitcode, 0)
+        self.assertEqual(p2.exitcode, 0)
+
+    def test_message_serialize_deserialize(self):
+        message = TextMessage(2, 1, "Hola don pepito")
+        serialized = message.serialize()
+        message_out = Message.deserialize(serialized)
+        self.assertEqual(message.message_id, message_out.message_id)
 
 
 if __name__ == '__main__':

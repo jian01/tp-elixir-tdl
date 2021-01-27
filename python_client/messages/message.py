@@ -6,7 +6,7 @@ import dateutil.parser
 
 
 class Message:
-    MESSAGE_ID_COUNT = 0
+    MESSAGE_ID_COUNT = 1
     """
     Message interface
     """

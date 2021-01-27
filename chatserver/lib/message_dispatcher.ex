@@ -15,11 +15,6 @@ defmodule MessageDispatcher do
         handler_pid = Map.get(client_handlers_map, recipient)
         send handler_pid, {:send_new, type, content_tuple, recipient}
         main_loop(client_handlers_map)
-      {:send_message, id, sender_id, recipient_id, content, timestamp} ->
-        Logger.debug("Sending message in MessageDispatcher from #{sender_id} to #{recipient_id}")
-        handler_pid = Map.get(client_handlers_map, recipient_id)
-        send handler_pid, {:new_message, id, sender_id, recipient_id, content, timestamp}
-        main_loop(client_handlers_map)
     end
   end
 
