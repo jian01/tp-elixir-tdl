@@ -1,13 +1,15 @@
-from typing import NoReturn, List
-from blocking_socket_transferer import BlockingSocketTransferer
-from messages.message import Message
-from server_news.notification import Notification
-from server_news.new_message import NewMessage
-from server_news.receipt_notice import ReceiptNotice
 import json
 import socket
+from typing import NoReturn, List
+
+from blocking_socket_transferer import BlockingSocketTransferer
+from messages.message import Message
+from server_news.new_message import NewMessage
+from server_news.notification import Notification
+from server_news.receipt_notice import ReceiptNotice
 
 GET_NEWS_KEYWORD = "GET_NEWS"
+
 
 class ChatServerConnector:
     """
@@ -33,7 +35,7 @@ class ChatServerConnector:
 
         :param message: the message to send
         """
-        new_message = NewMessage(message.serialize(),message.recipient)
+        new_message = NewMessage(message, message.recipient)
         self.send_notification(new_message)
 
     def get_news(self) -> List[Notification]:
@@ -43,13 +45,11 @@ class ChatServerConnector:
         :return: a list of server news
         """
         self.blocking_socket_transferer.send_plain_text(GET_NEWS_KEYWORD)
-        news_data = [json.loads(new_data)
-                     for new_data in
-                     json.loads(self.blocking_socket_transferer.receive_plain_text())]
-        news = [Notification.factory(new_data['type'], new_data['content'], new_data['recipient']) for new_data in news_data]
+        news_data = json.loads(self.blocking_socket_transferer.receive_plain_text())
+        news = [Notification.deserialize(new_data) for new_data in news_data]
         for new in news:
             if isinstance(new, NewMessage):
-                notification = ReceiptNotice(str(new.message.message_id), new.message.sender)
+                notification = ReceiptNotice(new.message.message_id, new.message.sender)
                 self.send_notification(notification)
         return news
 
@@ -67,4 +67,3 @@ class ChatServerConnector:
         Closes the socket
         """
         self.blocking_socket_transferer.close()
-

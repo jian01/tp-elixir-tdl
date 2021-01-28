@@ -1,5 +1,5 @@
 defmodule ClientConnection do
-  import NotificationSerializer
+  import EntityDeserializer
   require Logger
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client

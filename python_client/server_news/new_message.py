@@ -1,6 +1,8 @@
-from server_news.notification import Notification
-from messages.message import Message
 import json
+
+from messages.message import Message
+from server_news.notification import Notification
+
 
 class NewMessage(Notification):
     """
@@ -9,13 +11,23 @@ class NewMessage(Notification):
     SERIALIZER_NAME = "new_message"
     message: Message
 
-    def __init__(self, content: str, recipient_id: int):
+    @staticmethod
+    def deserialize_content(content) -> Message:
+        """
+        Deserializes the message
+
+        :param content: the message to deserialize
+        :return: a Message object
+        """
+        return Message.deserialize(content)
+
+    def __init__(self, message: Message, recipient_id: int):
         """
 
-        :param content: the content of the new message serialized
+        :param message: the message
         :param recipient_id: recipient of the message, ignored
         """
-        self.message = Message.deserialize(content)
+        self.message = message
 
     def serialize(self) -> str:
         """

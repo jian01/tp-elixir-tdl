@@ -1,6 +1,7 @@
 import json
-from typing import Optional
+from abc import abstractmethod
 from datetime import datetime
+from typing import Optional
 
 import dateutil.parser
 
@@ -14,10 +15,9 @@ class Message:
     created_datetime: datetime
     sender: int
     recipient: int
-    type: str
     content: str
 
-    def __init__(self, sender: int, recipient: int, message_id: Optional[int]=None):
+    def __init__(self, sender: int, recipient: int, message_id: Optional[int] = None):
         """
 
         :param message_id: the id of the message
@@ -33,17 +33,12 @@ class Message:
         self.recipient = recipient
         self.created_datetime = datetime.now()
 
+    @abstractmethod
     def serialize(self) -> str:
         """
         Serializes the message
         :return: a string of the serialized message
         """
-        return json.dumps({"id": self.message_id,
-                           "recipient": self.recipient,
-                           "sender": self.sender,
-                           "content": self.content,
-                           "type": self.type,
-                           "created_datetime": self.created_datetime.isoformat()})
 
     @classmethod
     def deserialize(cls, serialized: str) -> 'Message':
@@ -52,9 +47,9 @@ class Message:
         :param serialized: serialized message
         :return: a Message object
         """
+        types = {cls.SERIALIZER_NAME: cls for cls in Message.__subclasses__()}
         data_dict = json.loads(serialized)
-        object = cls(data_dict['sender'], data_dict['recipient'], data_dict['id'])
-        object.content = data_dict['content']
-        object.type = data_dict['type']
-        object.created_datetime = dateutil.parser.parse(data_dict['created_datetime'])
-        return object
+        msg = types[data_dict['type']](data_dict['sender'], data_dict['recipient'], data_dict['id'])
+        msg.content = data_dict['content']
+        msg.created_datetime = dateutil.parser.parse(data_dict['created_datetime'])
+        return msg

@@ -1,6 +1,5 @@
 import unittest
 from multiprocessing import Process, Barrier
-from time import sleep
 from typing import List, NoReturn
 
 from chat_server_connector import ChatServerConnector
@@ -15,14 +14,16 @@ class SimpleTestClient:
     Client for testing
     """
 
-    def __init__(self, client_id: int,
+    def __init__(self, barrier: Barrier, client_id: int,
                  messages_to_send: List[Message], messages_to_expect: List[Message]):
         """
 
+        :param barrier: barrier to synchronize processes
         :param client_id: the client id for instantiation
         :param messages_to_send: the messages to send to the clients
         :param messages_to_expect: messages that are expected to be received
         """
+        self.barrier = barrier
         self.client_id = client_id
         self.messages_to_send = messages_to_send
         self.messages_to_expect = messages_to_expect
@@ -44,6 +45,7 @@ class SimpleTestClient:
         Runs the process
         """
         connector = ChatServerConnector('localhost', 6500, self.client_id)
+        self.barrier.wait()
         for message in self.messages_to_send:
             connector.send_message(message)
         while self.expecting_more_news():
@@ -61,8 +63,9 @@ class SimpleTestClient:
 class TestChatServer(unittest.TestCase):
 
     def test_simple_receive_message(self):
-        def jorgito():
+        def jorgito(barrera):
             connector = ChatServerConnector('localhost', 6500, 8)
+            barrera.wait()
             connector.send_message(TextMessage(8, 7, "Hola don pepito"))
             news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             while not news:
@@ -72,8 +75,9 @@ class TestChatServer(unittest.TestCase):
             assert news[0].message.content == "Hola jorgito"
             exit(0)
 
-        def pepito():
+        def pepito(barrera):
             connector = ChatServerConnector('localhost', 6500, 7)
+            barrera.wait()
             connector.send_message(TextMessage(7, 8, "Hola jorgito"))
             news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             while not news:
@@ -83,8 +87,9 @@ class TestChatServer(unittest.TestCase):
             assert news[0].message.content == "Hola don pepito"
             exit(0)
 
-        p_jorgito = Process(target=jorgito)
-        p_pepito = Process(target=pepito)
+        barrera = Barrier(2)
+        p_jorgito = Process(target=jorgito, args=(barrera,))
+        p_pepito = Process(target=pepito, args=(barrera,))
         p_jorgito.start()
         p_pepito.start()
         p_jorgito.join()
@@ -93,8 +98,9 @@ class TestChatServer(unittest.TestCase):
         self.assertEqual(p_jorgito.exitcode, 0)
 
     def test_simple_receipt_message(self):
-        def escritor():
+        def escritor(barrera):
             connector = ChatServerConnector('localhost', 6500, 6)
+            barrera.wait()
             message = TextMessage(6, 5, "Hola don pepito")
             connector.send_message(message)
             news = connector.get_news()
@@ -104,8 +110,9 @@ class TestChatServer(unittest.TestCase):
             assert news[0].message_id == message.message_id
             exit(0)
 
-        def receptor():
+        def receptor(barrera):
             connector = ChatServerConnector('localhost', 6500, 5)
+            barrera.wait()
             news = connector.get_news()
             while not news:
                 news = connector.get_news()
@@ -113,8 +120,9 @@ class TestChatServer(unittest.TestCase):
             assert news[0].message.sender == 6
             exit(0)
 
-        p1 = Process(target=escritor)
-        p2 = Process(target=receptor)
+        barrera = Barrier(2)
+        p1 = Process(target=escritor, args=(barrera,))
+        p2 = Process(target=receptor, args=(barrera,))
         p1.start()
         p2.start()
         p1.join()
@@ -123,19 +131,20 @@ class TestChatServer(unittest.TestCase):
         self.assertEqual(p2.exitcode, 0)
 
     def test_multiple_clients(self):
+        barrera = Barrier(4)
         messages_to_send = [TextMessage(i, j, "Hola %d" % j) for i in range(4)
                             for j in range(4) if i != j] + [
                                TextMessage(1, 3, "Todo bien perri?"),
                                TextMessage(3, 1, "See todo bien"),
                                TextMessage(1, 3, "Me alegro")
                            ]
-        cl1 = SimpleTestClient(0, [m for m in messages_to_send if m.sender == 0],
+        cl1 = SimpleTestClient(barrera, 0, [m for m in messages_to_send if m.sender == 0],
                                [m for m in messages_to_send if m.recipient == 0])
-        cl2 = SimpleTestClient(1, [m for m in messages_to_send if m.sender == 1],
+        cl2 = SimpleTestClient(barrera, 1, [m for m in messages_to_send if m.sender == 1],
                                [m for m in messages_to_send if m.recipient == 1])
-        cl3 = SimpleTestClient(2, [m for m in messages_to_send if m.sender == 2],
+        cl3 = SimpleTestClient(barrera, 2, [m for m in messages_to_send if m.sender == 2],
                                [m for m in messages_to_send if m.recipient == 2])
-        cl4 = SimpleTestClient(3, [m for m in messages_to_send if m.sender == 3],
+        cl4 = SimpleTestClient(barrera, 3, [m for m in messages_to_send if m.sender == 3],
                                [m for m in messages_to_send if m.recipient == 3])
         p1 = Process(target=cl1)
         p2 = Process(target=cl2)
