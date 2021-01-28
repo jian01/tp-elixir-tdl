@@ -67,7 +67,6 @@ class TestChatServer(unittest.TestCase):
             news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             while not news:
                 news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
-            del connector
             assert len(news) == 1
             assert news[0].message.sender == 7
             assert news[0].message.content == "Hola jorgito"
@@ -79,7 +78,6 @@ class TestChatServer(unittest.TestCase):
             news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             while not news:
                 news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
-            del connector
             assert len(news) == 1
             assert news[0].message.sender == 8
             assert news[0].message.content == "Hola don pepito"
@@ -102,7 +100,6 @@ class TestChatServer(unittest.TestCase):
             news = connector.get_news()
             while not news:
                 news = connector.get_news()
-            del connector
             assert len(news) == 1
             assert news[0].message_id == message.message_id
             exit(0)
@@ -112,7 +109,6 @@ class TestChatServer(unittest.TestCase):
             news = connector.get_news()
             while not news:
                 news = connector.get_news()
-            del connector
             assert len(news) == 1
             assert news[0].message.sender == 6
             exit(0)
