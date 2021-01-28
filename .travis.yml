@@ -10,6 +10,6 @@ before_install:
   - cd chatserver
   - elixir --erl "-detached" -S mix run --no-halt
   - sleep 5
-  - ps -aux
+  - ss -l | grep 6500
   - cd ..
 script: python ./python_client/test_chatserver.py
