@@ -1,5 +1,7 @@
-from server_news.notification import Notification
 import json
+
+from server_news.notification import Notification
+
 
 class ReceiptNotice(Notification):
     """
@@ -8,13 +10,13 @@ class ReceiptNotice(Notification):
     SERIALIZER_NAME = "receipt_notice"
     message_id: int
 
-    def __init__(self, content: str, recipient_id: int):
+    def __init__(self, message_id: int, recipient_id: int):
         """
 
-        :param content: the id of the message as str
+        :param message_id: the id of the message
         :param recipient_id: the recipient of the message
         """
-        self.message_id = int(content)
+        self.message_id = message_id
         self.receipient_id = recipient_id
 
     def serialize(self) -> str:
@@ -22,5 +24,5 @@ class ReceiptNotice(Notification):
         Serializes the notification for sending it to the server
         :return: a string with the serialized notification
         """
-        return json.dumps({"type": self.SERIALIZER_NAME, "content": str(self.message_id),
+        return json.dumps({"type": self.SERIALIZER_NAME, "content": self.message_id,
                            "recipient": self.receipient_id})

@@ -1,3 +1,4 @@
+import json
 from abc import abstractmethod
 
 
@@ -6,21 +7,28 @@ class Notification:
     A notification either from the server or from the client
     """
 
+    @staticmethod
+    def deserialize_content(content):
+        """
+        Deserializes the content of the notification if needed
+
+        :param content: the content to deserialize
+        :return: the object
+        """
+        return content
+
     @classmethod
-    def factory(cls, name: str, content: str, recipient_id: int) -> 'Notification':
+    def deserialize(cls, serialized: str) -> 'Notification':
         """
 
-        :param name: the name of the new
-        :param content: the content of the new
-        :param recipient_id: the recipient of the new
-        :return: a ServerNew object
+        Deserializes any notification
+        :param serialized: serialized message
+        :return: a Notification object
         """
-        types = {cls.__name__: cls for cls in Notification.__subclasses__()}
-        if name == types['NewMessage'].SERIALIZER_NAME:
-            return types['NewMessage'](content, recipient_id)
-        elif name == types['ReceiptNotice'].SERIALIZER_NAME:
-            return types['ReceiptNotice'](content, recipient_id)
-        raise AttributeError("Unknown type of new")
+        data_dict = json.loads(serialized)
+        types = {cls.SERIALIZER_NAME: cls for cls in Notification.__subclasses__()}
+        content = types[data_dict['type']].deserialize_content(data_dict['content'])
+        return types[data_dict['type']](content, data_dict['recipient'])
 
     @abstractmethod
     def serialize(self) -> str:
