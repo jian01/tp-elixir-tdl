@@ -62,26 +62,24 @@ class TestChatServer(unittest.TestCase):
 
     def test_simple_receive_message(self):
         def jorgito():
-            connector = ChatServerConnector('localhost', 6500, 2)
-            connector.send_message(TextMessage(2, 1, "Hola don pepito"))
+            connector = ChatServerConnector('localhost', 6500, 8)
+            connector.send_message(TextMessage(8, 7, "Hola don pepito"))
             news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             while not news:
                 news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
-            del connector
             assert len(news) == 1
-            assert news[0].message.sender == 1
+            assert news[0].message.sender == 7
             assert news[0].message.content == "Hola jorgito"
             exit(0)
 
         def pepito():
-            connector = ChatServerConnector('localhost', 6500, 1)
-            connector.send_message(TextMessage(1, 2, "Hola jorgito"))
+            connector = ChatServerConnector('localhost', 6500, 7)
+            connector.send_message(TextMessage(7, 8, "Hola jorgito"))
             news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             while not news:
                 news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
-            del connector
             assert len(news) == 1
-            assert news[0].message.sender == 2
+            assert news[0].message.sender == 8
             assert news[0].message.content == "Hola don pepito"
             exit(0)
 
@@ -96,25 +94,23 @@ class TestChatServer(unittest.TestCase):
 
     def test_simple_receipt_message(self):
         def escritor():
-            connector = ChatServerConnector('localhost', 6500, 2)
-            message = TextMessage(2, 1, "Hola don pepito")
+            connector = ChatServerConnector('localhost', 6500, 6)
+            message = TextMessage(6, 5, "Hola don pepito")
             connector.send_message(message)
             news = connector.get_news()
             while not news:
                 news = connector.get_news()
-            del connector
             assert len(news) == 1
             assert news[0].message_id == message.message_id
             exit(0)
 
         def receptor():
-            connector = ChatServerConnector('localhost', 6500, 1)
+            connector = ChatServerConnector('localhost', 6500, 5)
             news = connector.get_news()
             while not news:
                 news = connector.get_news()
-            del connector
             assert len(news) == 1
-            assert news[0].message.sender == 2
+            assert news[0].message.sender == 6
             exit(0)
 
         p1 = Process(target=escritor)

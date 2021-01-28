@@ -1,4 +1,6 @@
 # tp-elixir-tdl
+[![Build Status](https://travis-ci.com/jian01/tp-elixir-tdl.svg?branch=develop)](https://travis-ci.com/jian01/tp-elixir-tdl)
+
 EL TP de TDL.
 
 Para correr los tests:
