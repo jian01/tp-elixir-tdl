@@ -2,6 +2,8 @@ language: python
 python:
   - 3.6.9
 before_install:
+  - python --version
+  - pip install -r requirements.txt
   - wget https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb && sudo dpkg -i erlang-solutions_2.0_all.deb
   - sudo apt-get update
   - sudo apt-get install esl-erlang
@@ -9,6 +11,4 @@ before_install:
   - cd chatserver
   - elixir --erl "-detached" -S mix run --no-halt
   - cd ..
-  - python --version
-  - pip install -r ./python_client/requirements.txt
-script: python python_client/test_chatserver.py
+script: python ./python_client/test_chatserver.py
