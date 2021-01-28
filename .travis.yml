@@ -8,7 +8,9 @@ before_install:
   - sudo apt-get install esl-erlang
   - sudo apt-get install elixir
   - cd chatserver
+  - ls
   - elixir --erl "-detached" -S mix run --no-halt
   - sleep 5
+  - netstat | grep 6500
   - cd ..
 script: python ./python_client/test_chatserver.py
