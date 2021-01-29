@@ -163,6 +163,47 @@ class TestChatServer(unittest.TestCase):
         self.assertEqual(p3.exitcode, 0)
         self.assertEqual(p4.exitcode, 0)
 
+    def test_desconnection_keeps_state(self):
+        def escritor(barrera):
+            connector = ChatServerConnector('localhost', 6500, 10)
+            barrera.wait()
+            message = TextMessage(10, 9, "Hola don pepito")
+            connector.send_message(message)
+            barrera.wait()
+            del connector
+            barrera.wait()
+            connector = ChatServerConnector('localhost', 6500, 10)
+            news = connector.get_news()
+            while not news:
+                news = connector.get_news()
+            assert len(news) == 1
+            assert news[0].message_id == message.message_id
+            exit(0)
+
+        def receptor(barrera):
+            connector = ChatServerConnector('localhost', 6500, 9)
+            barrera.wait()
+            del connector
+            barrera.wait()
+            connector = ChatServerConnector('localhost', 6500, 9)
+            news = connector.get_news()
+            while not news:
+                news = connector.get_news()
+            assert len(news) == 1
+            assert news[0].message.sender == 10
+            barrera.wait()
+            exit(0)
+
+        barrera = Barrier(2)
+        p1 = Process(target=escritor, args=(barrera,))
+        p2 = Process(target=receptor, args=(barrera,))
+        p1.start()
+        p2.start()
+        p1.join()
+        p2.join()
+        self.assertEqual(p1.exitcode, 0)
+        self.assertEqual(p2.exitcode, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
