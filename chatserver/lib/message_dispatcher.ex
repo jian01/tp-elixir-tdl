@@ -4,6 +4,7 @@ defmodule MessageDispatcher do
   Module responsible for dispatching messages to clients
   """
 
+  # Message dispatcher main loop
   defp main_loop(client_handlers_map) do
     receive do
       {:add_client, client_id,handler_pid} ->
@@ -18,6 +19,9 @@ defmodule MessageDispatcher do
     end
   end
 
+  @doc """
+  Message dispatcher start point
+  """
   def message_dispatcher_run() do
     main_loop(%{})
   end
