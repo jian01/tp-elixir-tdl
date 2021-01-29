@@ -71,7 +71,7 @@ defmodule ClientConnection do
       :timeout ->
         :ok
       :error ->
-        raise "Connection closed"
+        exit(0)
     end
     client_connection_run(socket, client_handler_pid, m_dispatcher_pid)
   end
