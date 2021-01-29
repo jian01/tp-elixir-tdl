@@ -7,10 +7,13 @@ defmodule ClientConnection do
   @size_message_length 20
   @get_news_keyword "GET_NEWS"
 
+
+  # Converts an integer to a fixed size string of size @size_message_length
   defp size_to_bytes_number(number) do
     String.pad_leading(Integer.to_string(number), @size_message_length, "0")
   end
 
+  # Reads a fixed size amount of bytes from the socket. Locks until all bytes are read.
   defp read_fixed_size(socket, size_to_read, buffer) do
     case :gen_tcp.recv(socket, size_to_read) do
       {:ok, data} ->
@@ -25,12 +28,14 @@ defmodule ClientConnection do
     end
   end
 
+  # Sends plain text through the socket
   defp send_plain_text(socket, message) do
     padded_size = size_to_bytes_number(byte_size(message))
     :gen_tcp.send(socket, padded_size)
     :gen_tcp.send(socket, message)
   end
 
+  # Reads plain text from the socket using a timeout, 0 for no timeout
   defp read_plain_text_w_timeout(socket, timeout) do
     case :gen_tcp.recv(socket, @size_message_length, timeout) do
       {:ok, data} ->
@@ -48,6 +53,9 @@ defmodule ClientConnection do
     end
   end
 
+  @doc """
+  Client connection main loop
+  """
   def client_connection_run(socket, client_handler_pid, m_dispatcher_pid) do
     case read_plain_text_w_timeout(socket, 1) do
       {:ok, @get_news_keyword} ->

@@ -8,6 +8,9 @@ defmodule ChatServerListener do
   """
   @id_message_length 20
 
+  @doc """
+  Responsible for accepting the connection of a new client
+  """
   def accept_connection(socket, m_dispatcher_pid) do
     {:ok, client} = :gen_tcp.accept(socket)
     case :gen_tcp.recv(client, @id_message_length) do
@@ -27,6 +30,9 @@ defmodule ChatServerListener do
     end
   end
 
+  @doc """
+  Responsible for opening the socket
+  """
   def start_listening() do
     m_dispatcher_pid = spawn_link fn ->
       message_dispatcher_run()
