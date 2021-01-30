@@ -1,6 +1,7 @@
 import json
-
+from typing import Optional
 from messages.message import Message
+from datetime import datetime
 
 
 class TextMessage(Message):
@@ -9,15 +10,19 @@ class TextMessage(Message):
     """
     SERIALIZER_NAME = "text"
 
-    def __init__(self, sender: int, recipient: int, text: str):
+    def __init__(self, sender: int, recipient: int, text: str,
+                 message_id: Optional[int] = None,
+                 creation_datetime: Optional[datetime] = None):
         """
 
         :param sender: the sender of the message
         :param recipient: recipient of the message
         :param text: the text of the message
+        :param message_id: optional message id
+        :param creation_datetime: the created datetime
         """
         self.content = text
-        super().__init__(sender, recipient)
+        super().__init__(sender, recipient, message_id, creation_datetime)
 
     def serialize(self) -> str:
         """
