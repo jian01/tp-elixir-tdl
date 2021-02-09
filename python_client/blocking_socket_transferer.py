@@ -1,5 +1,7 @@
 import os
 import socket
+import select
+from typing import Optional
 
 DEFAULT_SOCKET_BUFFER_SIZE = 4096
 OK_MESSAGE = "OK"
@@ -14,6 +16,8 @@ class SocketClosed(Exception):
 class BlockingSocketTransferer:
     def __init__(self, socket: socket):
         self.socket = socket
+        self.poller = select.poll()
+        self.poller.register(self.socket, select.POLLIN)
 
     def controlled_recv(self, size: int) -> bytes:
         data = self.socket.recv(size)
@@ -67,7 +71,11 @@ class BlockingSocketTransferer:
         self.socket.sendall(self.size_to_bytes_number(len(encoded_text)))
         self.socket.sendall(encoded_text)
 
-    def receive_plain_text(self) -> str:
+    def receive_plain_text(self, timeout: Optional[int] = None) -> str:
+        if timeout:
+            events = self.poller.poll(timeout)
+            if not events:
+                raise TimeoutError
         size_to_recv = int(self.receive_fixed_size(SIZE_NUMBER_SIZE))
         result = ""
         recv_size = 0

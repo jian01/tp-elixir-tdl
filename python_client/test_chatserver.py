@@ -1,7 +1,7 @@
 import unittest
 from multiprocessing import Process, Barrier
 from typing import List, NoReturn
-
+from time import sleep
 from chat_server_connector import ChatServerConnector
 from messages.message import Message
 from messages.text_message import TextMessage
@@ -237,6 +237,39 @@ class TestChatServer(unittest.TestCase):
         p2.join()
         self.assertEqual(p1.exitcode, 0)
         self.assertEqual(p2.exitcode, 0)
+
+    def test_notification_resend_only_if_lost(self):
+        def jorgito(barrera):
+            connector = ChatServerConnector('localhost', 6500, 13)
+            barrera.wait()
+            connector.send_message(TextMessage(13, 14, "Hola don pepito"))
+            exit(0)
+
+        def pepito(barrera):
+            def dummy_get_news(connector):
+                new_data = connector.blocking_socket_transferer.receive_plain_text()
+            connector = ChatServerConnector('localhost', 6500, 14)
+            barrera.wait()
+            dummy_get_news(connector)
+            sleep(20)
+            news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
+            while not news:
+                news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
+            assert len(news) == 1
+            assert news[0].message.content == "Hola don pepito"
+            sleep(30)
+            assert not connector.get_news()
+            exit(0)
+
+        barrera = Barrier(2)
+        p_jorgito = Process(target=jorgito, args=(barrera,))
+        p_pepito = Process(target=pepito, args=(barrera,))
+        p_jorgito.start()
+        p_pepito.start()
+        p_jorgito.join()
+        p_pepito.join()
+        self.assertEqual(p_pepito.exitcode, 0)
+        self.assertEqual(p_jorgito.exitcode, 0)
 
 
 if __name__ == '__main__':

@@ -1,12 +1,31 @@
 defmodule ClientConnection do
   import EntityDeserializer
+  import NotificationAck
   require Logger
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client
   """
   @size_message_length 20
-  @get_news_keyword "GET_NEWS"
 
+  defprotocol NotificationDispatcher do
+    @doc """
+    Dispatchs a notification by its type
+    """
+    @fallback_to_any true
+    def dispatch_notification(notification, socket, client_handler_pid, m_dispatcher_pid)
+  end
+
+  defimpl NotificationDispatcher, for: NotificationAck do
+    def dispatch_notification(notification, _, client_handler_pid, _) do
+      send client_handler_pid, {:ack_notification, notification.notification_id}
+    end
+  end
+
+  defimpl NotificationDispatcher, for: Any do
+    def dispatch_notification(notification, _, _, m_dispatcher_pid) do
+      send m_dispatcher_pid, {:send_notification, notification}
+    end
+  end
 
   # Converts an integer to a fixed size string of size @size_message_length
   defp size_to_bytes_number(number) do
@@ -58,20 +77,21 @@ defmodule ClientConnection do
   """
   def client_connection_run(socket, client_handler_pid, m_dispatcher_pid) do
     case read_plain_text_w_timeout(socket, 1) do
-      {:ok, @get_news_keyword} ->
-        send client_handler_pid, {:get_notifications, self()}
-        receive do
-          {:notifications, notifications} ->
-            {:ok, encoded_notifications} = JSON.encode(notifications)
-            send_plain_text(socket, encoded_notifications)
-        end
       {:ok, data} ->
         notification = deserialize_notification(data)
-        send m_dispatcher_pid, {:send_notification, notification}
+        NotificationDispatcher.dispatch_notification(notification, socket, client_handler_pid, m_dispatcher_pid)
       :timeout ->
         :ok
       :error ->
         exit(0)
+    end
+    send client_handler_pid, {:get_notifications, self()}
+    receive do
+      {:notifications, notifications} ->
+        Enum.each notifications, fn notification ->
+          notification = EntitySerializer.serialize(notification)
+          send_plain_text(socket, notification)
+        end
     end
     client_connection_run(socket, client_handler_pid, m_dispatcher_pid)
   end
