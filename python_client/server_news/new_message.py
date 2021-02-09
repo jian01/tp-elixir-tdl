@@ -34,5 +34,6 @@ class NewMessage(Notification):
         Serializes the notification for sending it to the server
         :return: a string with the serialized notification
         """
-        return json.dumps({"type": self.SERIALIZER_NAME, "content": self.message.serialize(),
+        return json.dumps({"type": self.SERIALIZER_NAME,
+                           "content": self.message.serialize(),
                            "recipient": self.message.recipient})
