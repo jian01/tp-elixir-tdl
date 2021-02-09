@@ -238,7 +238,7 @@ class TestChatServer(unittest.TestCase):
         self.assertEqual(p1.exitcode, 0)
         self.assertEqual(p2.exitcode, 0)
 
-    def test_notification_resend_if_lost(self):
+    def test_notification_resend_only_if_lost(self):
         def jorgito(barrera):
             connector = ChatServerConnector('localhost', 6500, 13)
             barrera.wait()
@@ -257,6 +257,8 @@ class TestChatServer(unittest.TestCase):
                 news = [new for new in connector.get_news() if isinstance(new, NewMessage)]
             assert len(news) == 1
             assert news[0].message.content == "Hola don pepito"
+            sleep(30)
+            assert not connector.get_news()
             exit(0)
 
         barrera = Barrier(2)

@@ -7,6 +7,7 @@ defmodule EntityDeserializer do
   import ReceiptNotice
   import NewMessage
   import NewNotification
+  import NotificationAck
 
   @doc """
   Deserializes a message serialized with the EntitySerializer protocol
@@ -46,6 +47,9 @@ defmodule EntityDeserializer do
         %NewNotification{id: content[SerializationConstants.new_notification_content_id],
         notification: deserialize_notification(content[SerializationConstants.new_notification_content_notif]),
         recipient: content[SerializationConstants.notification_recipient_field]}
+      SerializationConstants.notification_ack_type ->
+        {:ok, content} = JSON.decode(content)
+        %NotificationAck{notification_id: content}
     end
   end
 end

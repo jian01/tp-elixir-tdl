@@ -7,6 +7,7 @@ defmodule SerializationConstants do
   const :new_message_type, "new_message"
   const :receipt_notice_type, "receipt_notice"
   const :new_notification_type, "new_notification"
+    const :notification_ack_type, "notification_ack"
   const :text_message_type, "text"
   const :notification_type_field, "type"
   const :notification_content_field, "content"

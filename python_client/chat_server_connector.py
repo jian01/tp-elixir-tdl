@@ -7,6 +7,7 @@ from messages.message import Message
 from server_news.new_message import NewMessage
 from server_news.notification import Notification
 from server_news.receipt_notice import ReceiptNotice
+from server_news.notification_ack import NotificationAck
 
 MILISECONDS_TO_WAIT_NEWS = 10
 
@@ -50,10 +51,13 @@ class ChatServerConnector:
                 news.append(Notification.deserialize(new_data))
         except TimeoutError:
             pass
-        for new in [n.notification for n in news]:
-            if isinstance(new, NewMessage):
-                notification = ReceiptNotice(new.message.message_id, new.message.sender)
-                self.send_notification(notification)
+        for new in news:
+            if isinstance(new.notification, NewMessage):
+                new_message = new.notification
+                recpt_notice = ReceiptNotice(new_message.message.message_id, new_message.message.sender)
+                self.send_notification(recpt_notice)
+            ack = NotificationAck(new.notif_id)
+            self.send_notification(ack)
         news = [n.notification for n in news]
         return news
 

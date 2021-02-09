@@ -27,6 +27,10 @@ defmodule ClientHandler do
       {:get_notifications, requester_pid} ->
         news_last_sent = send_unacked_news(news, news_last_sent, requester_pid)
         main_loop(news, news_last_sent, notif_id)
+      {:ack_notification, id} ->
+        news = Map.new(Enum.reject(news, fn {k, _} -> k == id end))
+        news_last_sent = Map.new(Enum.reject(news_last_sent, fn {k, _} -> k == id end))
+        main_loop(news, news_last_sent, notif_id)
     end
   end
 
