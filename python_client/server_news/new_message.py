@@ -1,5 +1,5 @@
 import json
-
+from typing import Tuple
 from messages.message import Message
 from server_news.notification import Notification
 
@@ -12,14 +12,14 @@ class NewMessage(Notification):
     message: Message
 
     @staticmethod
-    def deserialize_content(content) -> Message:
+    def deserialize_content(content) -> Tuple:
         """
         Deserializes the message
 
         :param content: the message to deserialize
         :return: a Message object
         """
-        return Message.deserialize(content)
+        return (Message.deserialize(content), )
 
     def __init__(self, message: Message, recipient_id: int):
         """

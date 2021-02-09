@@ -1,4 +1,5 @@
 import json
+from typing import Tuple
 from abc import abstractmethod
 
 
@@ -8,14 +9,14 @@ class Notification:
     """
 
     @staticmethod
-    def deserialize_content(content):
+    def deserialize_content(content) -> Tuple:
         """
         Deserializes the content of the notification if needed
 
         :param content: the content to deserialize
-        :return: the object
+        :return: a tuple to unpack in the constructor
         """
-        return content
+        return (content, )
 
     @classmethod
     def deserialize(cls, serialized: str) -> 'Notification':
@@ -28,7 +29,7 @@ class Notification:
         data_dict = json.loads(serialized)
         types = {cls.SERIALIZER_NAME: cls for cls in Notification.__subclasses__()}
         content = types[data_dict['type']].deserialize_content(data_dict['content'])
-        return types[data_dict['type']](content, data_dict['recipient'])
+        return types[data_dict['type']](*content, data_dict['recipient'])
 
     @abstractmethod
     def serialize(self) -> str:

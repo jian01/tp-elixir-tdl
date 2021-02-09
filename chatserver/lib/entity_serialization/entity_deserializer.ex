@@ -6,6 +6,7 @@ defmodule EntityDeserializer do
   import TextMessage
   import ReceiptNotice
   import NewMessage
+  import NewNotification
 
   @doc """
   Deserializes a message serialized with the EntitySerializer protocol
@@ -39,6 +40,11 @@ defmodule EntityDeserializer do
         %NewMessage{message: content_deserialized, recipient: recipient}
       SerializationConstants.receipt_notice_type ->
         %ReceiptNotice{message_id: content, recipient: recipient}
+      SerializationConstants.new_notification_type ->
+        {:ok, content} = JSON.decode(content)
+        %NewNotification{id: content[SerializationConstants.new_notification_content_id],
+        notification: deserialize_notification(content[SerializationConstants.new_notification_content_notif]),
+        recipient: recipient}
     end
   end
 end

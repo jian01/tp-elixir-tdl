@@ -1,11 +1,12 @@
 defmodule ClientHandler do
+  import NewNotification
   @moduledoc """
   Responsible for handling client state
   """
 
   # Sends all news to a particular pid
   defp send_all_news(news, requester_pid) do
-    send requester_pid, {:notifications, Enum.map(news, fn notification -> EntitySerializer.serialize(notification) end)}
+    send requester_pid, {:notifications, Enum.map(news, fn notification -> EntitySerializer.serialize(%NewNotification{id: 1, notification: notification, recipient: notification.recipient}) end)}
   end
 
   # Main loop of client handler

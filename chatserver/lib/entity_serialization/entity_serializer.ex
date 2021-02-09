@@ -2,6 +2,7 @@ require SerializationConstants
 import TextMessage
 import ReceiptNotice
 import NewMessage
+import NewNotification
 
 defprotocol EntitySerializer do
   @doc """
@@ -23,6 +24,17 @@ defimpl EntitySerializer, for: NewMessage do
   def serialize(notification) do
     content = EntitySerializer.serialize(notification.message)
     {:ok, serialized} = JSON.encode(%{SerializationConstants.notification_type_field => SerializationConstants.new_message_type,
+                                    SerializationConstants.notification_content_field => content,
+                                    SerializationConstants.notification_recipient_field => notification.recipient})
+    serialized
+  end
+end
+
+defimpl EntitySerializer, for: NewNotification do
+  def serialize(notification) do
+    {:ok, content} = JSON.encode(%{SerializationConstants.new_notification_content_id => notification.id,
+                                SerializationConstants.new_notification_content_notif => EntitySerializer.serialize(notification.notification)})
+    {:ok, serialized} = JSON.encode(%{SerializationConstants.notification_type_field => SerializationConstants.new_notification_type,
                                     SerializationConstants.notification_content_field => content,
                                     SerializationConstants.notification_recipient_field => notification.recipient})
     serialized

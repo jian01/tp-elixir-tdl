@@ -46,7 +46,7 @@ class ChatServerConnector:
         """
         self.blocking_socket_transferer.send_plain_text(GET_NEWS_KEYWORD)
         news_data = json.loads(self.blocking_socket_transferer.receive_plain_text())
-        news = [Notification.deserialize(new_data) for new_data in news_data]
+        news = [Notification.deserialize(new_data).notification for new_data in news_data]
         for new in news:
             if isinstance(new, NewMessage):
                 notification = ReceiptNotice(new.message.message_id, new.message.sender)
