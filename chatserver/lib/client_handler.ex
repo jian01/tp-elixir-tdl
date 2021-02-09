@@ -6,7 +6,7 @@ defmodule ClientHandler do
 
   # Sends all news to a particular pid
   defp send_all_news(news, requester_pid) do
-    send requester_pid, {:notifications, Enum.map(news, fn ({_, notification}) -> EntitySerializer.serialize(notification) end)}
+    send requester_pid, {:notifications, Enum.map(news, fn ({_, notification}) -> notification end)}
   end
 
   # Main loop of client handler
@@ -17,7 +17,7 @@ defmodule ClientHandler do
         main_loop(news, notif_id + 1)
       {:get_notifications, requester_pid} ->
         send_all_news(news, requester_pid)
-        main_loop(news, notif_id)
+        main_loop(%{}, notif_id)
     end
   end
 

@@ -8,8 +8,7 @@ from server_news.new_message import NewMessage
 from server_news.notification import Notification
 from server_news.receipt_notice import ReceiptNotice
 
-GET_NEWS_KEYWORD = "GET_NEWS"
-
+MILISECONDS_TO_WAIT_NEWS = 10
 
 class ChatServerConnector:
     """
@@ -40,17 +39,22 @@ class ChatServerConnector:
 
     def get_news(self) -> List[Notification]:
         """
-        Gets all server news
+        Gets all server news that are ready to be read in the socket
 
         :return: a list of server news
         """
-        self.blocking_socket_transferer.send_plain_text(GET_NEWS_KEYWORD)
-        news_data = json.loads(self.blocking_socket_transferer.receive_plain_text())
-        news = [Notification.deserialize(new_data).notification for new_data in news_data]
-        for new in news:
+        news = []
+        try:
+            while True:
+                new_data = self.blocking_socket_transferer.receive_plain_text(MILISECONDS_TO_WAIT_NEWS)
+                news.append(Notification.deserialize(new_data))
+        except TimeoutError:
+            pass
+        for new in [n.notification for n in news]:
             if isinstance(new, NewMessage):
                 notification = ReceiptNotice(new.message.message_id, new.message.sender)
                 self.send_notification(notification)
+        news = [n.notification for n in news]
         return news
 
     def send_notification(self, notif: Notification) -> NoReturn:
