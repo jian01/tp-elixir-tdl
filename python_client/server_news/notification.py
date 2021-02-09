@@ -29,7 +29,7 @@ class Notification:
         data_dict = json.loads(serialized)
         types = {cls.SERIALIZER_NAME: cls for cls in Notification.__subclasses__()}
         content = types[data_dict['type']].deserialize_content(data_dict['content'])
-        return types[data_dict['type']](*content, data_dict['recipient'])
+        return types[data_dict['type']](*content)
 
     @abstractmethod
     def serialize(self) -> str:

@@ -1,6 +1,6 @@
 import json
-from typing import Tuple, Any
-from messages.message import Message
+from typing import Tuple
+
 from server_news.notification import Notification
 
 
@@ -13,7 +13,7 @@ class NewNotification(Notification):
     notification: Notification
 
     @staticmethod
-    def deserialize_content(content) -> Tuple[int, Notification]:
+    def deserialize_content(content) -> Tuple:
         """
         Deserializes the message
 
@@ -22,7 +22,8 @@ class NewNotification(Notification):
         """
         dict_data = json.loads(content)
         return (dict_data["id"],
-                Notification.deserialize(dict_data["notification"]))
+                Notification.deserialize(dict_data["notification"]),
+                dict_data["recipient"])
 
     def __init__(self, notif_id: int,
                  notification: Notification,
@@ -44,5 +45,6 @@ class NewNotification(Notification):
         """
         return json.dumps({"type": self.SERIALIZER_NAME,
                            "content": json.dumps({"id": self.notif_id,
-                                                  "notification": self.notification.serialize()}),
-                           "recipient": self.recipient_id})
+                                                  "notification": self.notification.serialize(),
+                                                  "recipient": self.recipient_id
+                                                  })})
