@@ -8,9 +8,9 @@ defmodule ChatServer do
   Chat server start function
   """
   def start(_type, _args) do
-    pid = spawn fn -> start_listening() end
+    start_listening()
 
-    {:ok, pid}
+    {:ok, self()}
   end
 
 end
