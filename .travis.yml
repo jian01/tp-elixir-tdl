@@ -8,4 +8,4 @@ before_install:
   - sudo apt-get install esl-erlang
   - sudo apt-get install elixir
   - mix local.hex --force
-script: python ./python_client/test_chatserver.py
+script: make test_travis
