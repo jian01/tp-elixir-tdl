@@ -28,7 +28,6 @@ defmodule ChatServer.Accepter do
   """
   def start_link(_opts) do
     start_listening()
-    {:ok, self()}
   end
 
   @doc """
