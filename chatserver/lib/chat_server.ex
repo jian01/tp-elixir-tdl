@@ -1,16 +1,8 @@
 defmodule ChatServer do
-  import ChatServerListener
-  @moduledoc """
-  Chat server main module and launcher
-  """
+  use Application
 
-  @doc """
-  Chat server start function
-  """
+  @impl true
   def start(_type, _args) do
-    start_listening()
-
-    {:ok, self()}
+    ChatServer.Supervisor.start_link(name: ChatServer.Supervisor)
   end
-
 end
