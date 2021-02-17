@@ -18,10 +18,19 @@ defmodule ChatServer.Supervisor do
   @impl true
   def init(:ok) do
     children = [
-      {ChatServer.MappingAgent, name: ChatServer.Clients},
+      # Dynamic Supervisors
+      #{DynamicSupervisor, name: ChatServer.ClientsSupervisor, strategy: :one_for_one},
+
+      # ClientHandlers register
+      #{Registry, keys: :unique, name: ChatServer.Registry},
+
+      # GenServers
+      {ChatServer.Handlers, name: ChatServer.Handlers},
+      #{ChatServer.MappingAgent, name: ChatServer.Clients},
       {ChatServer.MessageDispatcher, name: ChatServer.MessageDispatcher},
 
-      ChatServer.Acceptor
+      # Acceptor main loop
+      {ChatServer.Acceptor, name: ChatServer.Acceptor}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

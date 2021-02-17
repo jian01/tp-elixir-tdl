@@ -1,5 +1,6 @@
-defmodule ClientHandler do
+defmodule ChatServer.ClientHandler do
   import NewNotification
+
   @moduledoc """
   Responsible for handling client state
   """

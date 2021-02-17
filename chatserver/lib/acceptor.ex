@@ -1,6 +1,5 @@
 defmodule ChatServer.Acceptor do
   import ClientConnection
-  import ClientHandler
   require Logger
 
   @moduledoc """
@@ -23,10 +22,13 @@ defmodule ChatServer.Acceptor do
   end
 
   @doc """
-  Starts a new acceptor.
+  Start the ChatServer acceptor.
   """
   def start_link(_opts) do
     start_listening()
+    # pid = spawn_link fn -> start_listening() end
+    # Process.register(pid, name)
+    # {:ok, pid}
   end
 
   defp register(client) do
@@ -34,13 +36,7 @@ defmodule ChatServer.Acceptor do
       {:ok, data} ->
         {client_id, _} = Integer.parse(data)
         Logger.debug("Accepting new client with id #{client_id}")
-        client_handler_pid = if ChatServer.MappingAgent.exists(ChatServer.Clients, client_id) do
-          ChatServer.MappingAgent.get(ChatServer.Clients, client_id)
-        else
-          pid = spawn_link fn -> client_handler_run() end
-          ChatServer.MappingAgent.put(ChatServer.Clients, client_id, pid)
-          pid
-        end
+        client_handler_pid = ChatServer.Handlers.set(ChatServer.Handlers, client_id)
         _ = spawn fn -> client_connection_run(client, client_handler_pid) end
         :ok
 
