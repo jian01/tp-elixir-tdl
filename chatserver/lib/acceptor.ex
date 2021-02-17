@@ -1,5 +1,5 @@
 defmodule ChatServer.Acceptor do
-  import ClientConnection
+  use Task, restart: :transient
   require Logger
 
   @moduledoc """
@@ -8,21 +8,9 @@ defmodule ChatServer.Acceptor do
 
   @id_message_length 20
 
-  def child_spec(opts) do
-    %{
-      id: __MODULE__,
-      start: {__MODULE__, :start_link, [opts]},
-      type: :worker,
-      restart: :permanent,
-      shutdown: 500
-    }
-  end
 
-
-  def start_link(name: name) do
-    pid = spawn_link fn -> start_listening(6500) end
-    Process.register(pid, name)
-    {:ok, pid}
+  def start_link(port: port) do
+    Task.start_link(__MODULE__, :start_listening, [port])
   end
 
   # Registers client handler and starts client connection for `client`.
@@ -32,7 +20,7 @@ defmodule ChatServer.Acceptor do
         {client_id, _} = Integer.parse(data)
         Logger.debug("Accepting new client with id #{client_id}")
         client_handler_pid = ChatServer.Handlers.set(ChatServer.Handlers, client_id)
-        _ = spawn fn -> client_connection_run(client, client_handler_pid) end
+        _ = spawn fn -> ChatServer.ClientConnection.client_connection_run(client, client_handler_pid) end
         :ok
 
       {:error, :closed} ->
@@ -56,6 +44,8 @@ defmodule ChatServer.Acceptor do
   Acceptor starting function.
   """
   def start_listening(port) do
+    Process.register(self(), ChatServer.Acceptor)
+
     Logger.debug("Starting socket for listening new clients")
     case :gen_tcp.listen(port, [:binary, active: false, reuseaddr: true]) do
       {:ok, socket} ->

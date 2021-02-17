@@ -20,7 +20,7 @@ defmodule ChatServer.Supervisor do
     children = [
       {ChatServer.Handlers, name: ChatServer.Handlers},
       {ChatServer.MessageDispatcher, name: ChatServer.MessageDispatcher},
-      {ChatServer.Acceptor, name: ChatServer.Acceptor}
+      {ChatServer.Acceptor, port: 6500}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

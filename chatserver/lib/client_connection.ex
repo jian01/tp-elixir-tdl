@@ -1,4 +1,4 @@
-defmodule ClientConnection do
+defmodule ChatServer.ClientConnection do
   import EntityDeserializer
   import NotificationAck
   require Logger
