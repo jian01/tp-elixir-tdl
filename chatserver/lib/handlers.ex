@@ -11,21 +11,22 @@ defmodule ChatServer.Handlers do
   end
 
   @doc """
-  TODO
+  If client_id is not in the registry, it is added.
+  Returns the pid.
   """
   def set(server, client_id) do
     GenServer.call(server, {:set, client_id})
   end
 
   @doc """
-  TODO
+  Checks if client_id is in the registry.
   """
   def exists?(server, client_id) do
     GenServer.call(server, {:exists?, client_id})
   end
 
   @doc """
-  TODO
+  Gets pid for client_id in server.
   """
   def get(server, client_id) do
     GenServer.call(server, {:get, client_id})
