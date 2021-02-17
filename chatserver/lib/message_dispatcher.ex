@@ -32,8 +32,8 @@ defmodule ChatServer.MessageDispatcher do
     receive do
       {:send_notification, notification} ->
         Logger.debug("Sending new to client #{notification.recipient}")
-        if ChatServer.Handlers.exists?(ChatServer.Handlers, notification.recipient) do
-          handler_pid = ChatServer.Handlers.get(ChatServer.Handlers, notification.recipient)
+        if ChatServer.HandlersMap.exists?(ChatServer.HandlersMap, notification.recipient) do
+          handler_pid = ChatServer.HandlersMap.get(ChatServer.HandlersMap, notification.recipient)
           ChatServer.ClientHandler.send_notif(handler_pid, notification)
         end
         main_loop()

@@ -1,4 +1,4 @@
-defmodule ChatServer.Handlers do
+defmodule ChatServer.HandlersMap do
   use GenServer
 
   ## Client API
