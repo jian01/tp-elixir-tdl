@@ -18,6 +18,7 @@ defmodule ChatServer.Supervisor do
   @impl true
   def init(:ok) do
     children = [
+      {Task.Supervisor, name: ChatServer.ConnectionsSupervisor},
       {ChatServer.Handlers, name: ChatServer.Handlers},
       {ChatServer.MessageDispatcher, name: ChatServer.MessageDispatcher},
       {ChatServer.Acceptor, port: 6500}

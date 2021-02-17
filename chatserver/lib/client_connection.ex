@@ -1,10 +1,11 @@
 defmodule ChatServer.ClientConnection do
+  use Task
+  require Logger
   import EntityDeserializer
   import NotificationAck
-  require Logger
 
   @moduledoc """
-  Abstraction used to simplify the use of the socket listening the client
+  Abstraction used to simplify the use of the socket listening the client.
   """
 
   @size_message_length 20
