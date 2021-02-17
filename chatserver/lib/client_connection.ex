@@ -17,7 +17,8 @@ defmodule ClientConnection do
 
   defimpl NotificationDispatcher, for: NotificationAck do
     def dispatch_notification(notification, _, client_handler_pid) do
-      send client_handler_pid, {:ack_notification, notification.notification_id}
+      ChatServer.ClientHandler.ack_notif(client_handler_pid, notification.notification_id)
+      # send client_handler_pid, {:ack_notification, notification.notification_id}
     end
   end
 
@@ -85,7 +86,8 @@ defmodule ClientConnection do
       :error ->
         exit(0)
     end
-    send client_handler_pid, {:get_notifications, self()}
+    ChatServer.ClientHandler.get_notif(client_handler_pid, self())
+    # send client_handler_pid, {:get_notification, self()}
     receive do
       {:notifications, notifications} ->
         Enum.each notifications, fn notification ->

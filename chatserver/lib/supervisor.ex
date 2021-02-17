@@ -26,7 +26,6 @@ defmodule ChatServer.Supervisor do
 
       # GenServers
       {ChatServer.Handlers, name: ChatServer.Handlers},
-      #{ChatServer.MappingAgent, name: ChatServer.Clients},
       {ChatServer.MessageDispatcher, name: ChatServer.MessageDispatcher},
 
       # Acceptor main loop

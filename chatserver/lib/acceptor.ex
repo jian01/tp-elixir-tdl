@@ -56,7 +56,25 @@ defmodule ChatServer.Acceptor do
     loop_acceptor(socket)
   end
 
+  defp debug_purposes() do
+    Logger.debug("=== DEBUG ===")
+
+    pid1 = ChatServer.Handlers.set(ChatServer.Handlers, 35)
+    pid2 = ChatServer.Handlers.set(ChatServer.Handlers, 36)
+    pid3 = ChatServer.Handlers.set(ChatServer.Handlers, 35)
+
+    Logger.debug("pid1: #{inspect pid1}")
+    Logger.debug("pid2: #{inspect pid2}")
+    Logger.debug("pid3: #{inspect pid3}")
+
+
+
+    Logger.debug("=== DEBUG ===")
+  end
+
   defp start_listening() do
+    debug_purposes()
+
     Logger.debug("Starting socket for listening new clients")
     case :gen_tcp.listen(6500, [:binary, active: false, reuseaddr: true]) do
       {:ok, socket} ->

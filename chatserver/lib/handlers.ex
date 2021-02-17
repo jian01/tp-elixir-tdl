@@ -49,7 +49,8 @@ defmodule ChatServer.Handlers do
       # TODO:
       # {:ok, pid} = DynamicSupervisor.start_child(ChatServer.ClientsSupervisor, ?)
 
-      pid = spawn_link fn -> ChatServer.ClientHandler.client_handler_run() end
+      {:ok, pid} = ChatServer.ClientHandler.start_link([])
+      # pid = spawn_link fn -> ChatServer.ClientHandler.client_handler_run() end
       handlers = Map.put(handlers, client_id, pid)
       {:reply, pid, handlers}
     end
