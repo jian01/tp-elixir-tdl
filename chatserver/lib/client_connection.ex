@@ -2,9 +2,11 @@ defmodule ClientConnection do
   import EntityDeserializer
   import NotificationAck
   require Logger
+
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client
   """
+
   @size_message_length 20
 
   defprotocol NotificationDispatcher do
@@ -18,7 +20,6 @@ defmodule ClientConnection do
   defimpl NotificationDispatcher, for: NotificationAck do
     def dispatch_notification(notification, _, client_handler_pid) do
       ChatServer.ClientHandler.ack_notif(client_handler_pid, notification.notification_id)
-      # send client_handler_pid, {:ack_notification, notification.notification_id}
     end
   end
 
@@ -62,11 +63,14 @@ defmodule ClientConnection do
         {size_to_read, _} = Integer.parse(data)
         message = read_fixed_size(socket, size_to_read, "")
         {:ok, message}
+
       {:error, :closed} ->
         Logger.debug("Client closed their connection")
         :error
+
       {:error, :timeout} ->
         :timeout
+
       {:error, reason} ->
         Logger.error("Client openned socket error: #{inspect reason}")
         :error
@@ -81,13 +85,16 @@ defmodule ClientConnection do
       {:ok, data} ->
         notification = deserialize_notification(data)
         NotificationDispatcher.dispatch_notification(notification, socket, client_handler_pid)
+
       :timeout ->
         :ok
+
       :error ->
         exit(0)
     end
+
     ChatServer.ClientHandler.get_notif(client_handler_pid, self())
-    # send client_handler_pid, {:get_notification, self()}
+
     receive do
       {:notifications, notifications} ->
         Enum.each notifications, fn notification ->

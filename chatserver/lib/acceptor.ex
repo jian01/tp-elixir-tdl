@@ -3,14 +3,11 @@ defmodule ChatServer.Acceptor do
   require Logger
 
   @moduledoc """
-  Accepter for new clients.
+  Acceptor for new clients.
   """
 
   @id_message_length 20
 
-  @doc """
-  Child spec for supervisor to run it.
-  """
   def child_spec(opts) do
     %{
       id: __MODULE__,
@@ -21,16 +18,14 @@ defmodule ChatServer.Acceptor do
     }
   end
 
-  @doc """
-  Start the ChatServer acceptor.
-  """
-  def start_link(_opts) do
-    start_listening()
-    # pid = spawn_link fn -> start_listening() end
-    # Process.register(pid, name)
-    # {:ok, pid}
+
+  def start_link(name: name) do
+    pid = spawn_link fn -> start_listening(6500) end
+    Process.register(pid, name)
+    {:ok, pid}
   end
 
+  # Registers client handler and starts client connection for `client`.
   defp register(client) do
     case :gen_tcp.recv(client, @id_message_length) do
       {:ok, data} ->
@@ -50,39 +45,26 @@ defmodule ChatServer.Acceptor do
     end
   end
 
+  # Acceptor main loop.
   defp loop_acceptor(socket) do
     {:ok, client} = :gen_tcp.accept(socket)
     :ok = register(client)
     loop_acceptor(socket)
   end
 
-  defp debug_purposes() do
-    Logger.debug("=== DEBUG ===")
-
-    pid1 = ChatServer.Handlers.set(ChatServer.Handlers, 35)
-    pid2 = ChatServer.Handlers.set(ChatServer.Handlers, 36)
-    pid3 = ChatServer.Handlers.set(ChatServer.Handlers, 35)
-
-    Logger.debug("pid1: #{inspect pid1}")
-    Logger.debug("pid2: #{inspect pid2}")
-    Logger.debug("pid3: #{inspect pid3}")
-
-
-
-    Logger.debug("=== DEBUG ===")
-  end
-
-  defp start_listening() do
-    debug_purposes()
-
+  @doc """
+  Acceptor starting function.
+  """
+  def start_listening(port) do
     Logger.debug("Starting socket for listening new clients")
-    case :gen_tcp.listen(6500, [:binary, active: false, reuseaddr: true]) do
+    case :gen_tcp.listen(port, [:binary, active: false, reuseaddr: true]) do
       {:ok, socket} ->
         Logger.info("Socket opened for listening")
         loop_acceptor(socket)
 
       {:error, reason} ->
         Logger.error("Could not open socket: #{reason}")
+        :error
     end
   end
 

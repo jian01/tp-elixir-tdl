@@ -46,11 +46,7 @@ defmodule ChatServer.Handlers do
       {:ok, pid} = Map.fetch(handlers, client_id)
       {:reply, pid, handlers}
     else
-      # TODO:
-      # {:ok, pid} = DynamicSupervisor.start_child(ChatServer.ClientsSupervisor, ?)
-
       {:ok, pid} = ChatServer.ClientHandler.start_link([])
-      # pid = spawn_link fn -> ChatServer.ClientHandler.client_handler_run() end
       handlers = Map.put(handlers, client_id, pid)
       {:reply, pid, handlers}
     end

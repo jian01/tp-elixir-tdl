@@ -30,21 +30,21 @@ defmodule ChatServer.ClientHandler do
 
 
   @doc """
-  TODO
+  Send notification wrapper.
   """
   def send_notif(server, notif) do
     GenServer.cast(server, {:send_notif, notif})
   end
 
   @doc """
-  TODO
+  Get notification wrapper.
   """
   def get_notif(server, requester_pid) do
     GenServer.cast(server, {:get_notif, requester_pid})
   end
 
   @doc """
-  TODO
+  Ack notification wrapper.
   """
   def ack_notif(server, id) do
     GenServer.cast(server, {:ack_notif, id})

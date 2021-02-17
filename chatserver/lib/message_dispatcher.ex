@@ -35,7 +35,6 @@ defmodule ChatServer.MessageDispatcher do
         if ChatServer.Handlers.exists?(ChatServer.Handlers, notification.recipient) do
           handler_pid = ChatServer.Handlers.get(ChatServer.Handlers, notification.recipient)
           ChatServer.ClientHandler.send_notif(handler_pid, notification)
-          # send handler_pid, {:send_notif, notification}
         end
         main_loop()
     end
