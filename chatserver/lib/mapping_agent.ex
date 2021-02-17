@@ -1,12 +1,14 @@
-defmodule MappingAgent do
+defmodule ChatServer.MappingAgent do
   use Agent
+  require Logger
 
   @doc """
-  Create a mapping agent
+  Starts a new mapping agent.
   """
-  def create() do
-    Agent.start_link(fn -> %{} end)
+  def start_link(opts) do
+    Agent.start_link(fn -> %{} end, opts)
   end
+
 
   @doc """
   Gets a value from the map.

@@ -18,7 +18,8 @@ defmodule ChatServer.Supervisor do
   @impl true
   def init(:ok) do
     children = [
-      {ChatServer.Accepter, name: ChatServer.Accepter}
+      {ChatServer.MappingAgent, name: ChatServer.Clients},
+      ChatServer.Acceptor
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

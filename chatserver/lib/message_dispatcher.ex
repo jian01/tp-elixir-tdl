@@ -5,23 +5,23 @@ defmodule MessageDispatcher do
   """
 
   # Message dispatcher main loop
-  defp main_loop(client_handlers_map_pid) do
+  defp main_loop() do
     receive do
       {:send_notification, notification} ->
         Logger.debug("Sending new to client #{notification.recipient}")
-        if MappingAgent.exists(client_handlers_map_pid, notification.recipient) do
-          handler_pid = MappingAgent.get(client_handlers_map_pid, notification.recipient)
+        if ChatServer.MappingAgent.exists(ChatServer.Clients, notification.recipient) do
+          handler_pid = ChatServer.MappingAgent.get(ChatServer.Clients, notification.recipient)
           send handler_pid, {:send_notification, notification}
         end
-        main_loop(client_handlers_map_pid)
+        main_loop()
     end
   end
 
   @doc """
   Message dispatcher start point
   """
-  def message_dispatcher_run(client_handlers_map_pid) do
-    main_loop(client_handlers_map_pid)
+  def message_dispatcher_run() do
+    main_loop()
   end
 
 end

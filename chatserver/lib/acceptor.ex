@@ -1,4 +1,4 @@
-defmodule ChatServer.Accepter do
+defmodule ChatServer.Acceptor do
   import ClientConnection
   import ClientHandler
   import MessageDispatcher
@@ -11,7 +11,7 @@ defmodule ChatServer.Accepter do
   @id_message_length 20
 
   @doc """
-  Child specification for supervisor to run it.
+  Child spec for supervisor to run it.
   """
   def child_spec(opts) do
     %{
@@ -24,7 +24,7 @@ defmodule ChatServer.Accepter do
   end
 
   @doc """
-  Starts the accepter.
+  Starts a new acceptor.
   """
   def start_link(_opts) do
     start_listening()
@@ -33,21 +33,21 @@ defmodule ChatServer.Accepter do
   @doc """
   Responsible for accepting the connection of a new client
   """
-  def accept_connection(socket, m_dispatcher_pid, client_handlers_map_pid) do
+  def accept_connection(socket, m_dispatcher_pid) do
     {:ok, client} = :gen_tcp.accept(socket)
     case :gen_tcp.recv(client, @id_message_length) do
       {:ok, data} ->
         {client_id, _} = Integer.parse(data)
         Logger.debug("Accepting new client with id #{client_id}")
-        client_handler_pid = if MappingAgent.exists(client_handlers_map_pid, client_id) do
-          MappingAgent.get(client_handlers_map_pid, client_id)
+        client_handler_pid = if ChatServer.MappingAgent.exists(ChatServer.Clients, client_id) do
+          ChatServer.MappingAgent.get(ChatServer.Clients, client_id)
         else
           pid = spawn_link fn -> client_handler_run() end
-          MappingAgent.put(client_handlers_map_pid, client_id, pid)
+          ChatServer.MappingAgent.put(ChatServer.Clients, client_id, pid)
           pid
         end
         _ = spawn fn -> client_connection_run(client, client_handler_pid, m_dispatcher_pid) end
-        accept_connection(socket, m_dispatcher_pid, client_handlers_map_pid)
+        accept_connection(socket, m_dispatcher_pid)
       {:error, :closed} ->
         Logger.debug("Client closed their connection")
         :error
@@ -61,15 +61,16 @@ defmodule ChatServer.Accepter do
   Responsible for opening the socket
   """
   def start_listening() do
-    {:ok, client_handlers_map_pid} = MappingAgent.create()
     m_dispatcher_pid = spawn_link fn ->
-      message_dispatcher_run(client_handlers_map_pid)
+      message_dispatcher_run()
     end
+
     Logger.debug("Starting socket for listening new clients")
     case :gen_tcp.listen(6500, [:binary, active: false, reuseaddr: true]) do
       {:ok, socket} ->
         Logger.info("Socket opened for listening")
-        accept_connection(socket, m_dispatcher_pid, client_handlers_map_pid)
+        accept_connection(socket, m_dispatcher_pid)
+
       {:error, reason} ->
         Logger.error("Could not open socket: #{reason}")
     end
