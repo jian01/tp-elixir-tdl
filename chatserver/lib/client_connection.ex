@@ -12,18 +12,18 @@ defmodule ClientConnection do
     Dispatchs a notification by its type
     """
     @fallback_to_any true
-    def dispatch_notification(notification, socket, client_handler_pid, m_dispatcher_pid)
+    def dispatch_notification(notification, socket, client_handler_pid)
   end
 
   defimpl NotificationDispatcher, for: NotificationAck do
-    def dispatch_notification(notification, _, client_handler_pid, _) do
+    def dispatch_notification(notification, _, client_handler_pid) do
       send client_handler_pid, {:ack_notification, notification.notification_id}
     end
   end
 
   defimpl NotificationDispatcher, for: Any do
-    def dispatch_notification(notification, _, _, m_dispatcher_pid) do
-      send m_dispatcher_pid, {:send_notification, notification}
+    def dispatch_notification(notification, _, _) do
+      send ChatServer.MessageDispatcher, {:send_notification, notification}
     end
   end
 
@@ -75,11 +75,11 @@ defmodule ClientConnection do
   @doc """
   Client connection main loop
   """
-  def client_connection_run(socket, client_handler_pid, m_dispatcher_pid) do
+  def client_connection_run(socket, client_handler_pid) do
     case read_plain_text_w_timeout(socket, 1) do
       {:ok, data} ->
         notification = deserialize_notification(data)
-        NotificationDispatcher.dispatch_notification(notification, socket, client_handler_pid, m_dispatcher_pid)
+        NotificationDispatcher.dispatch_notification(notification, socket, client_handler_pid)
       :timeout ->
         :ok
       :error ->
@@ -93,7 +93,7 @@ defmodule ClientConnection do
           send_plain_text(socket, notification)
         end
     end
-    client_connection_run(socket, client_handler_pid, m_dispatcher_pid)
+    client_connection_run(socket, client_handler_pid)
   end
 
 end

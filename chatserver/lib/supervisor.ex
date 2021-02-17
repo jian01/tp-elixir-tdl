@@ -19,6 +19,8 @@ defmodule ChatServer.Supervisor do
   def init(:ok) do
     children = [
       {ChatServer.MappingAgent, name: ChatServer.Clients},
+      {ChatServer.MessageDispatcher, name: ChatServer.MessageDispatcher},
+
       ChatServer.Acceptor
     ]
 
