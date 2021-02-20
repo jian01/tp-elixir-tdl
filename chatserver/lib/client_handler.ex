@@ -1,7 +1,8 @@
-defmodule ClientHandler do
-  import NewNotification
+defmodule ChatServer.ClientHandler do
+  use GenServer
+
   @moduledoc """
-  Responsible for handling client state
+  GenServer responsible for handling client state.
   """
 
   @time_to_resend_notifications 20
@@ -18,27 +19,68 @@ defmodule ClientHandler do
     news_last_sent
   end
 
-  # Main loop of client handler
-  defp main_loop(news, news_last_sent, notif_id) do
-    receive do
-      {:send_notification, notification} ->
-        news = Map.put(news, notif_id, %NewNotification{id: notif_id, notification: notification, recipient: notification.recipient})
-        main_loop(news, news_last_sent, notif_id + 1)
-      {:get_notifications, requester_pid} ->
-        news_last_sent = send_unacked_news(news, news_last_sent, requester_pid)
-        main_loop(news, news_last_sent, notif_id)
-      {:ack_notification, id} ->
-        news = Map.new(Enum.reject(news, fn {k, _} -> k == id end))
-        news_last_sent = Map.new(Enum.reject(news_last_sent, fn {k, _} -> k == id end))
-        main_loop(news, news_last_sent, notif_id)
-    end
+  ## Client API
+
+  @doc """
+  Starts the handler.
+  """
+  def start_link(opts) do
+    GenServer.start_link(__MODULE__, :ok, opts)
+  end
+
+
+  @doc """
+  Send notification wrapper.
+  """
+  def send_notif(server, notif) do
+    GenServer.cast(server, {:send_notif, notif})
   end
 
   @doc """
-  Client handler start function
+  Get notification wrapper.
   """
-  def client_handler_run() do
-    main_loop(%{}, %{}, 0)
+  def get_notif(server, requester_pid) do
+    GenServer.cast(server, {:get_notif, requester_pid})
   end
 
+  @doc """
+  Ack notification wrapper.
+  """
+  def ack_notif(server, id) do
+    GenServer.cast(server, {:ack_notif, id})
+  end
+
+  ## Server callbacks
+
+  @impl true
+  def init(:ok) do
+    news = %{}
+    news_last_sent = %{}
+    notif_id = 0
+    {:ok, {news, news_last_sent, notif_id}}
+  end
+
+  @impl true
+  def handle_cast({:send_notif, notif}, {news, news_last_sent, notif_id}) do
+    news = Map.put(news, notif_id, %NewNotification{id: notif_id, notification: notif, recipient: notif.recipient})
+    {:noreply, {news, news_last_sent, notif_id + 1}}
+  end
+
+  @impl true
+  def handle_cast({:get_notif, requester_pid}, {news, news_last_sent, notif_id}) do
+    news_last_sent = send_unacked_news(news, news_last_sent, requester_pid)
+    {:noreply, {news, news_last_sent, notif_id}}
+  end
+
+  @impl true
+  def handle_cast({:ack_notif, id}, {news, news_last_sent, notif_id}) do
+    news = Map.new(Enum.reject(news, fn {k, _} -> k == id end))
+    news_last_sent = Map.new(Enum.reject(news_last_sent, fn {k, _} -> k == id end))
+    {:noreply, {news, news_last_sent, notif_id}}
+  end
+
+  @impl true
+  def handle_info(_msg, handlers) do
+    {:noreply, handlers}
+  end
 end
