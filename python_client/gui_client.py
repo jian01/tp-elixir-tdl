@@ -61,8 +61,10 @@ def send_message(tklist, recipient, my_msg, _):
     tklist.yview_moveto(0)
 
 def chat_with_contact(window, contact_id: int):
-    update_status()
     global current_conversations
+    if contact_id not in current_conversations:
+        current_conversations[contact_id] = []
+    update_status()
     if window:
         window.destroy()
     window = tkinter.Tk()
@@ -82,8 +84,6 @@ def chat_with_contact(window, contact_id: int):
     entry_field.bind("<Return>", partial(send_message, msg_list, contact_id, my_msg))
     entry_field.bind("<Alt_L>", partial(update_window, msg_list, contact_id))
     entry_field.pack()
-    if contact_id not in current_conversations:
-        current_conversations[contact_id] = []
     for message in sorted(current_conversations[contact_id], key=lambda x: x[0], reverse=True):
         msg_list.insert(-1, "%s %s - %s: %s" % (("✔✔️️" if message[3] in received_messages else "✔️"),
                                               message[0].isoformat(), message[1], message[2]))  # fecha, autor, mensaje
