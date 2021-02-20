@@ -73,7 +73,7 @@ def chat_with_contact(window, contact_id: int):
     messages_frame = tkinter.Frame(window)
     window.title("Chatter - Conversation with %d" % contact_id)
     scrollbar = tkinter.Scrollbar(messages_frame)
-    msg_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
+    msg_list = tkinter.Listbox(messages_frame, height=15, width=120, yscrollcommand=scrollbar.set)
     back_button = tkinter.Button(window, text="Ir atras", command=partial(see_all_contacts, window))
     back_button.pack()
     scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
@@ -82,7 +82,7 @@ def chat_with_contact(window, contact_id: int):
     my_msg = tkinter.StringVar()  # For the messages to be sent.
     my_msg.set("")
     messages_frame.pack()
-    entry_field = tkinter.Entry(window, textvariable=my_msg, width=50)
+    entry_field = tkinter.Entry(window, textvariable=my_msg, width=120)
     entry_field.bind("<Return>", partial(send_message, msg_list, contact_id, my_msg))
     entry_field.bind("<Alt_L>", partial(update_window, msg_list, contact_id))
     entry_field.pack()
