@@ -10,7 +10,6 @@ from server_news.new_message import NewMessage
 from server_news.receipt_notice import ReceiptNotice
 from functools import partial
 from multiprocessing import Process, Pipe
-from threading import Thread
 
 MY_MESSAGE_AUTHOR = "USTED"
 
@@ -43,18 +42,23 @@ def update_window(tklist, chat_id, _):
     update_status()
     tklist.delete(0, 'end')
     for message in sorted(current_conversations[chat_id], key=lambda x: x[0], reverse=True):
-        tklist.insert(-1, "%s - %s: %s" % (message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
+        tklist.insert(-1, "%s %s - %s: %s" % (("✔️✔️" if message[3] in received_messages else "✔️"),
+                                              message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
+    tklist.yview_moveto(0)
 
-def send_message(tklist, recipient, text_callable, _):
+def send_message(tklist, recipient, my_msg, _):
     update_status()
-    text = text_callable()
+    text = my_msg.get()
+    my_msg.set("")
     message = TextMessage(my_id, recipient, text)
     current_conversations[recipient].append((message.created_datetime, MY_MESSAGE_AUTHOR,
                                              text, message.message_id))
     messages_sender.send(message)
     tklist.delete(0, 'end')
     for message in sorted(current_conversations[recipient], key=lambda x: x[0], reverse=True):
-        tklist.insert(-1, "%s - %s: %s" % (message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
+        tklist.insert(-1, "%s %s - %s: %s" % (("✔✔️️" if message[3] in received_messages else "✔️"),
+                                              message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
+    tklist.yview_moveto(0)
 
 def chat_with_contact(window, contact_id: int):
     update_status()
@@ -66,7 +70,7 @@ def chat_with_contact(window, contact_id: int):
     window.title("Chatter - Conversation with %d" % contact_id)
     scrollbar = tkinter.Scrollbar(messages_frame)
     msg_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
-    back_button = tkinter.Button(window, text="Ir atras", command=lambda: None)
+    back_button = tkinter.Button(window, text="Ir atras", command=partial(see_all_contacts, window))
     back_button.pack()
     scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
     msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
@@ -75,7 +79,7 @@ def chat_with_contact(window, contact_id: int):
     my_msg.set("")
     messages_frame.pack()
     entry_field = tkinter.Entry(window, textvariable=my_msg, width=50)
-    entry_field.bind("<Return>", partial(send_message, msg_list, contact_id, my_msg.get))
+    entry_field.bind("<Return>", partial(send_message, msg_list, contact_id, my_msg))
     entry_field.bind("<Alt_L>", partial(update_window, msg_list, contact_id))
     entry_field.pack()
     if contact_id not in current_conversations:
