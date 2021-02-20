@@ -85,7 +85,8 @@ def chat_with_contact(window, contact_id: int):
     if contact_id not in current_conversations:
         current_conversations[contact_id] = []
     for message in sorted(current_conversations[contact_id], key=lambda x: x[0], reverse=True):
-        msg_list.insert(-1, "%s - %s: %s" % (message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
+        msg_list.insert(-1, "%s %s - %s: %s" % (("✔✔️️" if message[3] in received_messages else "✔️"),
+                                              message[0].isoformat(), message[1], message[2]))  # fecha, autor, mensaje
     return window
 
 def add_contact(window):
