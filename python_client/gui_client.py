@@ -31,6 +31,8 @@ def update_status():
         for new in [n for n in news if isinstance(n, NewMessage) or isinstance(n, ReceiptNotice)]:
             if isinstance(new, NewMessage):
                 message = new.message
+                if message.sender not in current_conversations:
+                    current_conversations[message.sender] = []
                 current_conversations[message.sender].append((message.created_datetime, contacts[message.sender],
                                                                 message.content, message.message_id))
             else:
