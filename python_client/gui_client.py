@@ -10,32 +10,40 @@ from server_news.new_message import NewMessage
 from server_news.receipt_notice import ReceiptNotice
 from functools import partial
 from multiprocessing import Process, Pipe
+from threading import Thread
 
 MY_MESSAGE_AUTHOR = "USTED"
 
-def keep_update(ip, port, id, server_connector):
+def keep_update(ip, port, id, news_sender, messages_receiver):
     csc = ChatServerConnector(host=args.ip, port=args.port, id=args.id)
     while True:
         news = csc.get_news()
         if news:
-            server_connector.send(news)
-        if server_connector.poll(0.1):
-            message = server_connector.recv()
+            news_sender.send(news)
+        if messages_receiver.poll(0.1):
+            message = messages_receiver.recv()
             csc.send_message(message)
 
 def update_status():
     global current_conversations
     global received_messages
-    if client_connector.poll(0.1):
-        news = client_connector.recv()
+    if news_receiver.poll(0.1):
+        news = news_receiver.recv()
         for new in [n for n in news if isinstance(n, NewMessage) or isinstance(n, ReceiptNotice)]:
             if isinstance(new, NewMessage):
                 message = new.message
-                current_conversations[new.recipient_id].append((message.created_datetime, MY_MESSAGE_AUTHOR,
+                current_conversations[message.sender].append((message.created_datetime, contacts[message.sender],
                                                                 message.content, message.message_id))
             else:
                 received_messages.update([new.message_id])
 
+def update_window(tklist, chat_id, _):
+    global current_conversations
+    global received_messages
+    update_status()
+    tklist.delete(0, 'end')
+    for message in sorted(current_conversations[chat_id], key=lambda x: x[0], reverse=True):
+        tklist.insert(-1, "%s - %s: %s" % (message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
 
 def send_message(tklist, recipient, text_callable, _):
     update_status()
@@ -43,6 +51,7 @@ def send_message(tklist, recipient, text_callable, _):
     message = TextMessage(my_id, recipient, text)
     current_conversations[recipient].append((message.created_datetime, MY_MESSAGE_AUTHOR,
                                              text, message.message_id))
+    messages_sender.send(message)
     tklist.delete(0, 'end')
     for message in sorted(current_conversations[recipient], key=lambda x: x[0], reverse=True):
         tklist.insert(-1, "%s - %s: %s" % (message[0].isoformat(), message[1], message[2])) #fecha, autor, mensaje
@@ -55,10 +64,10 @@ def chat_with_contact(window, contact_id: int):
     window = tkinter.Tk()
     messages_frame = tkinter.Frame(window)
     window.title("Chatter - Conversation with %d" % contact_id)
-    back_button = tkinter.Button(window, text="Ir atras", command=lambda x: None)
-    back_button.pack()
     scrollbar = tkinter.Scrollbar(messages_frame)
     msg_list = tkinter.Listbox(messages_frame, height=15, width=50, yscrollcommand=scrollbar.set)
+    back_button = tkinter.Button(window, text="Ir atras", command=lambda: None)
+    back_button.pack()
     scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
     msg_list.pack(side=tkinter.LEFT, fill=tkinter.BOTH)
     msg_list.pack()
@@ -67,6 +76,7 @@ def chat_with_contact(window, contact_id: int):
     messages_frame.pack()
     entry_field = tkinter.Entry(window, textvariable=my_msg, width=50)
     entry_field.bind("<Return>", partial(send_message, msg_list, contact_id, my_msg.get))
+    entry_field.bind("<Alt_L>", partial(update_window, msg_list, contact_id))
     entry_field.pack()
     if contact_id not in current_conversations:
         current_conversations[contact_id] = []
@@ -89,7 +99,9 @@ def see_all_contacts(window):
     if window:
         window.destroy()
     window = tkinter.Tk()
-    window.title("Chatter")
+    back = tkinter.Frame(window, width=200, height=200)
+    back.pack()
+    window.title("Chatter %d" % my_id)
     for con_id, name in contacts.items():
         con_but = tkinter.Button(window, text="Hablar con %s" % name, command=partial(chat_with_contact, window, con_id))
         con_but.pack()
@@ -107,8 +119,9 @@ parser.add_argument('id', type=int,
 args = parser.parse_args()
 my_id = args.id
 
-client_connector, server_connector = Pipe()
-p = Process(target=partial(keep_update, args.ip, args.port, args.id, server_connector))
+news_receiver, news_sender = Pipe()
+messages_receiver, messages_sender = Pipe()
+p = Process(target=partial(keep_update, args.ip, args.port, args.id, news_sender, messages_receiver))
 p.start()
 contacts = {}
 current_conversations = {}

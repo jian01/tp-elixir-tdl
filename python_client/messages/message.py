@@ -34,6 +34,7 @@ class Message:
             self.message_id = message_id
         self.sender = sender
         self.recipient = recipient
+        self.created_datetime = creation_datetime
         if not creation_datetime:
             self.created_datetime = datetime.now()
 
