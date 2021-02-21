@@ -1,70 +1,44 @@
 defmodule ChatServer.HandlersMap do
-  use GenServer
-
-  ## Client API
+  use Agent
 
   @doc """
   Starts the registry.
   """
-  def start_link(opts) do
-    GenServer.start_link(__MODULE__, :ok, opts)
+  def start_link(_opts) do
+    Agent.start_link(fn -> %{} end, name: __MODULE__)
+  end
+
+  @doc """
+  Checks if client_id is in the registry.
+  """
+  def exists?(client_id) do
+    Agent.get(__MODULE__, fn(state) ->
+      Map.has_key?(state, client_id)
+    end)
+  end
+
+  @doc """
+  Gets pid for client_id.
+  """
+  def get(client_id) do
+    Agent.get(__MODULE__, fn(state) ->
+      Map.get(state, client_id)
+    end)
   end
 
   @doc """
   If client_id is not in the registry, it is added.
   Returns the pid.
   """
-  def set(server, client_id) do
-    GenServer.call(server, {:set, client_id})
-  end
-
-  @doc """
-  Checks if client_id is in the registry.
-  """
-  def exists?(server, client_id) do
-    GenServer.call(server, {:exists?, client_id})
-  end
-
-  @doc """
-  Gets pid for client_id in server.
-  """
-  def get(server, client_id) do
-    GenServer.call(server, {:get, client_id})
-  end
-
-  ## Server callbacks
-
-  @impl true
-  def init(:ok) do
-    handlers = %{}
-    {:ok, handlers}
-  end
-
-  @impl true
-  def handle_call({:set, client_id}, _from, handlers) do
-    if Map.has_key?(handlers, client_id) do
-      {:ok, pid} = Map.fetch(handlers, client_id)
-      {:reply, pid, handlers}
+  def get_or_set(client_id) do
+    if __MODULE__.exists?(client_id) do
+      __MODULE__.get(client_id)
     else
       {:ok, pid} = ChatServer.ClientHandler.start_link([])
-      handlers = Map.put(handlers, client_id, pid)
-      {:reply, pid, handlers}
+      Agent.update(__MODULE__, fn(state) ->
+        Map.put(state, client_id, pid)
+      end)
+      pid
     end
-  end
-
-  @impl true
-  def handle_call({:exists?, client_id}, _from, handlers) do
-    {:reply, Map.has_key?(handlers, client_id), handlers}
-  end
-
-  @impl true
-  def handle_call({:get, client_id}, _from, handlers) do
-    {:ok, pid} = Map.fetch(handlers, client_id)
-    {:reply, pid, handlers}
-  end
-
-  @impl true
-  def handle_info(_msg, handlers) do
-    {:noreply, handlers}
   end
 end

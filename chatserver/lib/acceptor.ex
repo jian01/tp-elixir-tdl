@@ -19,8 +19,8 @@ defmodule ChatServer.Acceptor do
       {:ok, data} ->
         {client_id, _} = Integer.parse(data)
         Logger.debug("Accepting new client with id #{client_id}")
-        client_handler_pid = ChatServer.HandlersMap.set(ChatServer.HandlersMap, client_id)
-        {:ok, _} = Task.Supervisor.start_child(ChatServer.ConnectionsSupervisor, fn -> ChatServer.ClientConnection.client_connection_run(client, client_handler_pid) end)
+        handler_pid = ChatServer.HandlersMap.get_or_set(client_id)
+        {:ok, _} = Task.Supervisor.start_child(ChatServer.ConnectionsSupervisor, fn -> ChatServer.ClientConnection.client_connection_run(client, handler_pid) end)
         :ok
 
       {:error, :closed} ->
