@@ -26,9 +26,8 @@ defmodule ChatServer.ClientConnection do
     end
   end
 
-  defimpl NotificationDispatcher, for: NewMessage do 
+  defimpl NotificationDispatcher, for: NewMessage do
     def dispatch_notification(notification, _, _) do
-      IO.puts("antes de llamar a preprocessor")
       preprocessed_message = MessagePreprocessor.preprocess(notification.message)
       preprocessed_notification = %NewMessage{message: preprocessed_message, recipient: notification.recipient}
       send ChatServer.MessageDispatcher, {:send_notification, preprocessed_notification}
