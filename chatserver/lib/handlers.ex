@@ -12,18 +12,14 @@ defmodule ChatServer.HandlersMap do
   Checks if client_id is in the registry.
   """
   def exists?(client_id) do
-    Agent.get(__MODULE__, fn(state) ->
-      Map.has_key?(state, client_id)
-    end)
+    Agent.get(__MODULE__, &Map.has_key?(&1, client_id))
   end
 
   @doc """
   Gets pid for client_id.
   """
   def get(client_id) do
-    Agent.get(__MODULE__, fn(state) ->
-      Map.get(state, client_id)
-    end)
+    Agent.get(__MODULE__, &Map.get(&1, client_id))
   end
 
   @doc """
@@ -35,9 +31,7 @@ defmodule ChatServer.HandlersMap do
       __MODULE__.get(client_id)
     else
       {:ok, pid} = ChatServer.ClientHandler.start_link([])
-      Agent.update(__MODULE__, fn(state) ->
-        Map.put(state, client_id, pid)
-      end)
+      Agent.update(__MODULE__, &Map.put(&1, client_id, pid))
       pid
     end
   end
