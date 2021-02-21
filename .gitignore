@@ -12,6 +12,7 @@ erl_crash.dump
 __pycache__/
 *.py[cod]
 *$py.class
+deps/*
 
 # C extensions
 *.so
