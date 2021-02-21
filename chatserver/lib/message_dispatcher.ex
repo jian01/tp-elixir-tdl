@@ -21,9 +21,9 @@ defmodule ChatServer.MessageDispatcher do
   @doc """
   Starts message dispatcher.
   """
-  def start_link(name: name) do
+  def start_link(_opts) do
     pid = spawn_link fn -> main_loop() end
-    Process.register(pid, name)
+    Process.register(pid, __MODULE__)
     {:ok, pid}
   end
 
@@ -32,8 +32,8 @@ defmodule ChatServer.MessageDispatcher do
     receive do
       {:send_notification, notification} ->
         Logger.debug("Sending new to client #{notification.recipient}")
-        if ChatServer.HandlersMap.exists?(ChatServer.HandlersMap, notification.recipient) do
-          handler_pid = ChatServer.HandlersMap.get(ChatServer.HandlersMap, notification.recipient)
+        if ChatServer.HandlersMap.exists?(notification.recipient) do
+          handler_pid = ChatServer.HandlersMap.get(notification.recipient)
           ChatServer.ClientHandler.send_notif(handler_pid, notification)
         end
         main_loop()
