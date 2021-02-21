@@ -3,6 +3,8 @@ defmodule ChatServer.ClientConnection do
   require Logger
   import EntityDeserializer
   import NotificationAck
+  import NewMessage
+
 
   @moduledoc """
   Abstraction used to simplify the use of the socket listening the client.
@@ -21,6 +23,15 @@ defmodule ChatServer.ClientConnection do
   defimpl NotificationDispatcher, for: NotificationAck do
     def dispatch_notification(notification, _, client_handler_pid) do
       ChatServer.ClientHandler.ack_notif(client_handler_pid, notification.notification_id)
+    end
+  end
+
+  defimpl NotificationDispatcher, for: NewMessage do 
+    def dispatch_notification(notification, _, _) do
+      IO.puts("antes de llamar a preprocessor")
+      preprocessed_message = MessagePreprocessor.preprocess(notification.message)
+      preprocessed_notification = %NewMessage{message: preprocessed_message, recipient: notification.recipient}
+      send ChatServer.MessageDispatcher, {:send_notification, preprocessed_notification}
     end
   end
 
