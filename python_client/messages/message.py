@@ -1,6 +1,6 @@
 import json
 from abc import abstractmethod
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 import dateutil.parser
@@ -36,7 +36,7 @@ class Message:
         self.recipient = recipient
         self.created_datetime = creation_datetime
         if not creation_datetime:
-            self.created_datetime = datetime.now()
+            self.created_datetime = datetime.now(timezone.utc)
 
     @staticmethod
     def deserialize_content(content):

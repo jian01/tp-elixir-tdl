@@ -9,12 +9,12 @@ from messages.text_message import TextMessage
 from server_news.new_message import NewMessage
 from server_news.receipt_notice import ReceiptNotice
 from functools import partial
-from multiprocessing import Process, Pipe
+from multiprocessing import Process, Pipe, freeze_support
 
 MY_MESSAGE_AUTHOR = "USTED"
 
 def keep_update(ip, port, id, news_sender, messages_receiver):
-    csc = ChatServerConnector(host=args.ip, port=args.port, id=args.id)
+    csc = ChatServerConnector(host=ip, port=port, id=id)
     while True:
         news = csc.get_news()
         if news:
@@ -116,22 +116,24 @@ def see_all_contacts(window):
     back_button.pack()
     return window
 
-parser = argparse.ArgumentParser(description='Run client')
-parser.add_argument('port', type=int,
-                    help='port to connect')
-parser.add_argument('ip', type=str,
-                    help='ip to connect')
-parser.add_argument('id', type=int,
-                    help='your id')
-args = parser.parse_args()
-my_id = args.id
+if __name__ == "__main__":
+    freeze_support()
+    parser = argparse.ArgumentParser(description='Run client')
+    parser.add_argument('port', type=int,
+                        help='port to connect')
+    parser.add_argument('ip', type=str,
+                        help='ip to connect')
+    parser.add_argument('id', type=int,
+                        help='your id')
+    args = parser.parse_args()
+    my_id = args.id
 
-news_receiver, news_sender = Pipe()
-messages_receiver, messages_sender = Pipe()
-p = Process(target=partial(keep_update, args.ip, args.port, args.id, news_sender, messages_receiver))
-p.start()
-contacts = {}
-current_conversations = {}
-received_messages = set()
-see_all_contacts(None)
-tkinter.mainloop()  # Starts GUI execution.
+    news_receiver, news_sender = Pipe()
+    messages_receiver, messages_sender = Pipe()
+    p = Process(target=partial(keep_update, args.ip, args.port, args.id, news_sender, messages_receiver))
+    p.start()
+    contacts = {}
+    current_conversations = {}
+    received_messages = set()
+    see_all_contacts(None)
+    tkinter.mainloop()  # Starts GUI execution.

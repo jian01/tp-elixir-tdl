@@ -24,6 +24,8 @@ defmodule ChatServer.MessageDispatcher do
   def start_link(_opts) do
     pid = spawn_link fn -> main_loop() end
     Process.register(pid, __MODULE__)
+    {:ok, botpid} = ChatServer.BotHandler.start_link(99999, [])
+    ChatServer.HandlersMap.set(99999, botpid)
     {:ok, pid}
   end
 
