@@ -37,9 +37,7 @@ defmodule ChatServer.HandlersMap do
   end
 
   @doc """
-  ASDASDASDASDASD
-  ASDASDASDASDASD
-  ASDASDASDASDASD
+  Sets pid for client_id.
   """
   def set(client_id, handler_pid) do
     Agent.update(__MODULE__, &Map.put(&1, client_id, handler_pid))

@@ -21,6 +21,7 @@ defmodule ChatServer.Supervisor do
       {Task.Supervisor, name: ChatServer.ConnectionsSupervisor},
       ChatServer.HandlersMap,
       ChatServer.MessageDispatcher,
+      {ChatServer.BotHandler, id: 99999},
       {ChatServer.Acceptor, port: 6500}
     ]
 
